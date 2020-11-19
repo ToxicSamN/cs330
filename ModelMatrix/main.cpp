@@ -304,9 +304,9 @@ void UCreateShader(void){
     glLinkProgram(ProgramId); // Links the shader program
     glUseProgram(ProgramId); // Uses the shader program
 
-    // delete the vertex and fragment shaders oncelinked
-    //glDeleteShader(vertexShader);
-    //glDeleteShader(fragmentShader);
+    // delete the vertex and fragment shaders once linked
+    glDeleteShader(VertexShaderId);
+    glDeleteShader(FragmentShaderId);
 }
 // destoriy the shaders properly
 void DestroyShaders(void){
@@ -361,30 +361,6 @@ void UCreateVBO(){
             -0.5f, 0.5f, 0.0f,
             1.0f, 0.0f, 1.0f,
     };
-// Specifies coordinates for triangle verticies on x and y
-//    GLfloat vertices[]= {
-//
-//            // index 0
-//            -1.0f, 1.0f, 0.0f, // top of first triangle
-//            1.0f, 0.0f, 0.0f,// 1.0f, // Red Vertex
-//
-//            // index 1
-//            -0.5f, 0.0f, 0.0f, // right of triangle - common point for both triangles
-//            0.0f, 1.0f, 0.0f,// 1.0f, // Green Vertex
-//
-//            // index 2
-//            -1.0f, 0.0f, 0.0f,// left of first triangle
-//            0.0f, 0.0f, 1.0f,// 1.0f, // Blue Vertex
-//
-//            // index 3
-//            0.0f, 0.0f, 0.0f,// right of second triangle
-//            0.0f, 0.0f, 1.0f,// 1.0f, // Blue Vertex
-//
-//            // index 4
-//            0.0f, -1.0f, 0.0f, // bottom of second triangle
-//            1.0f, 0.0f, 0.0f,// 1.0f, // Red Vertex
-//
-//    };
 
     glGenVertexArrays(1, &VaoId);
     glBindVertexArray(VaoId);
