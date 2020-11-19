@@ -1,0 +1,3 @@
+C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/Quad/cmake-build-debug/CMakeFiles/Quad.dir
+C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/Quad/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/Quad/cmake-build-debug/CMakeFiles/rebuild_cache.dir

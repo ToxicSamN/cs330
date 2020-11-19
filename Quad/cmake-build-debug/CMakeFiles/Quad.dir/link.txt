@@ -1,0 +1,3 @@
+"C:\Program Files\JetBrains\CLion 2020.1.1\bin\cmake\win\bin\cmake.exe" -E remove -f CMakeFiles\Quad.dir/objects.a
+C:\TDM-GCC-64\bin\ar.exe cr CMakeFiles\Quad.dir/objects.a @CMakeFiles\Quad.dir\objects1.rsp
+C:\TDM-GCC-64\bin\g++.exe -g   -Wl,--whole-archive CMakeFiles\Quad.dir/objects.a -Wl,--no-whole-archive  -o Quad.exe -Wl,--out-implib,libQuad.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Quad.dir\linklibs.rsp
