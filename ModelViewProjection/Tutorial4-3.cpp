@@ -46,30 +46,6 @@ GLuint
         IndexBufferId[1],
         ActiveIndexBuffer = 0;
 
-///*Vertex Shader Source Code*/
-//const GLchar * vertexShaderSource = GLSL(330,
-//        layout (location = 0) in vec3 position; //vertex data from the vertex attrib pointer 0
-//        layout (location = 1) in vec4 color; // color data from vertex attrib pointer 1
-//
-//        out vec4 mobileColor; // variable to transfer color data to the fragment shader
-//
-//        uniform mat4 shaderTransform; // 4x4 matrix variable for transforming vertex data
-//
-//        void main() {
-//            gl_Position = shaderTransform * vec4(position, 1.0f); // transform vertex data using matrix
-//            mobileColor = color; // references incoming color data
-//        }
-//);
-//
-///*Fragment shader source code*/
-//const GLchar * fragmentShaderSource = GLSL(330,
-//        in vec4 mobileColor; // Variable to hold incoming color data from vertex shader
-//        out vec4 gpuColor; // variable to pass color data to the GPU
-//
-//        void main(){
-//            gpuColor = vec4(mobileColor, 1.0); // sends color data to the GPU for rendering
-//        }
-//);
 /*Vertex Shader Program Source Code*/
 const GLchar * vertexShaderSource = GLSL(440,
                                    in layout(location=0) vec3 vertex_Position; // Receive vertex coordinates from attribute 0. i.e. 2 floats per vertex
