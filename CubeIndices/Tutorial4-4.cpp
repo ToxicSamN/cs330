@@ -165,7 +165,6 @@ GLvoid* VertexMeta::getRGBAOffset() {
 
 /* Main Program */
 int main(int argc, char* argv[]) {
-
     UInitialize(argc, argv); // Initialize the OpenGL program
     glutMainLoop(); // Starts the OpenGL loop in the background
     exit(EXIT_SUCCESS); // Terminates the program successfully
@@ -176,7 +175,6 @@ void Cleanup(){
     DestroyShaders();
     DestroyVBO();
 }
-
 
 // Implements the UInitialize function
 void UInitialize(int argc, char* argv[]){
@@ -253,6 +251,7 @@ void URenderGraphics(void){
 
     // Creates a perspective projection
     glm::mat4 projection;
+    //projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f,100.0f);
     projection = glm::perspective(45.0f, (GLfloat)WindowWidth / (GLfloat)WindowHeight, 0.1f, 100.0f);
 
     // Retrieves and passes transform matrices to the shader program
@@ -263,6 +262,8 @@ void URenderGraphics(void){
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    glutPostRedisplay();
 
     /* Creates the triangle */
     // Draw the triangle using the indices
@@ -275,17 +276,19 @@ void URenderGraphics(void){
 
 /* Creates the shader program */
 void UCreateShader(void){
+
+    // Vertex Shader
+    VertexShaderId = glCreateShader(GL_VERTEX_SHADER); // Create a Vertex Shader Object
+    glShaderSource(VertexShaderId, 1, &vertexShaderSource, NULL); // retrieves the vertex shader source code
+    glCompileShader(VertexShaderId); // Compile the vertex shader
+
+    // Fragrment Shader
+    FragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER); // Create a vertex shader object
+    glShaderSource(FragmentShaderId, 1, &fragmentShaderSource, NULL); // retrieves the fragment shader source code
+    glCompileShader(FragmentShaderId); // Compile the fragment shader
+
     // Create a shader program object
     ProgramId = glCreateProgram();
-
-    VertexShaderId = glCreateShader(GL_VERTEX_SHADER); // Create a Vertex Shader Object
-    FragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER); // Create a vertex shader object
-
-    glShaderSource(VertexShaderId, 1, &vertexShaderSource, NULL); // retrieves the vertex shader source code
-    glShaderSource(FragmentShaderId, 1, &fragmentShaderSource, NULL); // retrieves the fragment shader source code
-
-    glCompileShader(VertexShaderId); // Compile the vertex shader
-    glCompileShader(FragmentShaderId); // Compile the fragment shader
 
     // Attaches the vertex and fragment shader to the shader program
     glAttachShader(ProgramId, VertexShaderId);
@@ -298,7 +301,7 @@ void UCreateShader(void){
     glDeleteShader(VertexShaderId);
     glDeleteShader(FragmentShaderId);
 }
-// destoriy the shaders properly
+// destroy the shaders properly
 void DestroyShaders(void){
     GLenum ErrorCheckValue = glGetError();
 
@@ -306,9 +309,6 @@ void DestroyShaders(void){
 
     glDetachShader(ProgramId, VertexShaderId);
     glDetachShader(ProgramId, FragmentShaderId);
-
-    glDeleteShader(FragmentShaderId);
-    glDeleteShader(VertexShaderId);
 
     glDeleteProgram(ProgramId);
 
@@ -332,41 +332,16 @@ void UCreateVBO(){
 
     // Position and color data
     GLfloat vertices[] = {
-            // vertex positions
-            // colors
+            /* x, y, z */        /* r,g,b color */
+            0.5f, 0.5f, 0.0f,    1.0f, 0.0f, 0.0f, // top right vertex 0
+            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f, // bottom right vertex 1
+            -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f, // bottom left vertex 2
+            -0.5f, 0.5f, 0.0f,   1.0f, 0.0f, 1.0f, // top left vertex 3
 
-            // top right vertex 0
-            0.5f, 0.5f, 0.0f, // x, y, z
-            1.0f, 0.0f, 0.0f, // color
-
-            // bottom right vertex 1
-            0.5f, -0.5f, 0.0f, // x, y, z
-            0.0f, 1.0f, 0.0f, // color
-
-            // bottom left vertex 2
-            -0.5f, -0.5f, 0.0f, // x, y, z
-            0.0f, 0.0f, 1.0f, // color
-
-            // top left vertex 3
-            -0.5f, 0.5f, 0.0f, // x, y, z
-            1.0f, 0.0f, 1.0f, // color
-
-
-            // bottom right-right vertex 4
-            0.5f, -0.5f, -1.0f, // x, y, z
-            0.5f, 0.5f, 1.0f, // color
-
-            // top left-right vertex 5
-            0.5f, 0.5f, -1.0f, // x, y, z
-            1.0f, 1.0f, 0.5f, // color
-
-            // top left-top vertex 6
-            -0.5f, 0.5f, -1.0f, // x, y, z
-            0.2f, 0.2f, 0.5f, // color
-
-            // bottom left-back vertex 7
-            -0.5f, -0.5f,-1.0f, // x, y, z
-            1.0f, 0.0f, 1.0f, // color
+            0.5f, -0.5f, -1.0f,  0.5f, 0.5f, 1.0f, // bottom right-right vertex 4
+            0.5f, 0.5f, -1.0f,   1.0f, 1.0f, 0.5f, // top left-right vertex 5
+            -0.5f, 0.5f, -1.0f,  0.2f, 0.2f, 0.5f, // top left-top vertex 6
+            -0.5f, -0.5f, -1.0f, 1.0f, 0.0f, 1.0f, // bottom left-back vertex 7
     };
 
     /*
