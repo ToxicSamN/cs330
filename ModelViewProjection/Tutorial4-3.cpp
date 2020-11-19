@@ -17,8 +17,7 @@ using namespace std;
 #endif
 
 /*Variable declarations for shader, window size initialization, buffer and array objects*/
-GLint shaderProgram, WindowWidth = 800, WindowHeight = 600;
-GLuint VBO, VAO, EBO, texture;
+GLint WindowWidth = 800, WindowHeight = 600;
 
 /*function prototypes*/
 void UResizeWindow(int, int);
@@ -36,38 +35,46 @@ void KeyboardFunction(unsigned char, int, int);
 void IdleFunction(void);
 
 GLuint
-        VertexShaderId,
-        FragmentShaderId,
-        ProgramId,
+        VertexShaderId, // vertex shader
+        FragmentShaderId, // fragment shader
+        ProgramId, // shader program
         VaoId,
         VboId,
         EboId,
         ColorBufferId,
         IndexBufferId[1],
-        ActiveIndexBuffer = 0;
+        ActiveIndexBuffer = 0,
+        texture;
 
 /*Vertex Shader Program Source Code*/
-const GLchar * vertexShaderSource = GLSL(440,
+const GLchar * vertexShaderSource = GLSL(330,
                                    in layout(location=0) vec3 vertex_Position; // Receive vertex coordinates from attribute 0. i.e. 2 floats per vertex
-                                           /*Get the vertex colors from the Vertex Buffer object*/
-                                           in layout(location=1) vec3 colorFromVBO; // for attribute 1 expect vec(4) floats passed into the vertex shader
-                                           out vec3 colorFromVShader; // declare a vec 4 variable that will referencethe vertex colors passed into the Vertex shader from the buffer
 
-                                           uniform mat4 shaderTransform; // 4x4 matrix variable for transforming vertex data
+                                   /*Get the vertex colors from the Vertex Buffer object*/
+                                   in layout(location=1) vec3 colorFromVBO; // for attribute 1 expect vec(4) floats passed into the vertex shader
 
-                                           void main(){
-                                               gl_Position = shaderTransform * vec4(vertex_Position, 1.0f); // Send the vertex positions to gl_Position vec 4
-                                               colorFromVShader = colorFromVBO; // references vertex colors sent from the buffer
-                                           }
+                                   out vec3 colorFromVShader; // declare a vec 4 variable that will referencethe vertex colors passed into the Vertex shader from the buffer
+
+                                   // Global variable for the transform matrices
+                                   uniform mat4 model;
+                                   uniform mat4 view;
+                                   uniform mat4 projection;
+
+                                   void main(){
+                                       gl_Position = projection * view * model * vec4(vertex_Position, 1.0f); // Send the vertex positions to gl_Position vec 4
+                                       colorFromVShader = colorFromVBO; // references vertex colors sent from the buffer
+                                   }
                               );
 
 /*  Fragment Shader Program Source Code*/
-const GLchar * fragmentShaderSource = GLSL(440,
+const GLchar * fragmentShaderSource = GLSL(330,
                                      in vec3 colorFromVShader; // Vertex colors from the vertex shader
-                                             out vec4 vertex_Color; // vec 4 variable that will reference the vertex colors passed into the fragment shader from the vertex shader
-                                             void main(){
-                                                 vertex_Color = vec4(colorFromVShader, 1.0f); // Send the vertex colors to the GPU
-                                             }
+
+                                     out vec4 gpuColor; // vec 4 variable that will reference the vertex colors passed into the fragment shader from the vertex shader
+
+                                     void main(){
+                                         gpuColor = vec4(colorFromVShader, 1.0f); // Send the vertex colors to the GPU
+                                     }
                                 );
 
 
@@ -232,27 +239,33 @@ void URenderGraphics(void){
     glBindVertexArray(VaoId);
 
     //Declares a 4x4 identity matrix uniform to the handle transformations
-    glm::mat4  currentTransform;
-
-    //Moves the 0.5 in y
-    currentTransform = glm::translate(currentTransform, glm::vec3(0.0f,0.5f,0.0f));
+    glm::mat4  model;
+    model = glm::translate(model, glm::vec3(0.0f,0.0f,0.0f));
     //Rotates Shape 45 degrees on the z axis
-    currentTransform = glm::rotate(currentTransform, 45.0f, glm::vec3(0.0f,0.0f,1.0f));
+    model = glm::rotate(model, 15.0f, glm::vec3(1.0f,0.0f,0.0f));
     // Scales the shape down by half it's original size in xyz
-    currentTransform = glm::scale(currentTransform, glm::vec3(0.5f, 0.5f, 0.5f));
+    model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
 
-    //Sends transform information to the Vertex shader
-    GLuint transformLocation = glGetUniformLocation(ProgramId, "shaderTransform");
-    glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(currentTransform));
+    // Transforms the camera
+    glm::mat4 view;
+    view = glm::translate(view, glm::vec3(0.0f,0.0f,-3.0f)); // Moves the camera backwards -3 units in z axis
 
-    // Draws the triangles
+    // Creates a perspective projection
+    glm::mat4 projection;
+    projection = glm::perspective(45.0f, (GLfloat)WindowWidth / (GLfloat)WindowHeight, 0.1f, 100.0f);
+
+    // Retrieves and passes transform matrices to the shader program
+    GLint modelLoc = glGetUniformLocation(ProgramId, "model");
+    GLint viewLoc = glGetUniformLocation(ProgramId, "view");
+    GLint projLoc = glGetUniformLocation(ProgramId, "projection");
+
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
     /* Creates the triangle */
     // Draw the triangle using the indices
-    if (ActiveIndexBuffer == 0) {
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
-    } else {
-        glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_SHORT, NULL);
-    }
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 
     glBindVertexArray(0); // deactivates the vertex array object
 
@@ -316,26 +329,34 @@ void UCreateVBO(){
     // define the number of dimension 2D (x, y) coordinates or 3D (x, y, z) coordinates
     VertexMeta VertexInfo = VertexMeta(3);
 
-    //Position and color data
+    // Position and color data
     GLfloat vertices[] = {
             // vertex positions
             // colors
 
             // top right vertex 0
-            0.5f, 0.5f, 0.0f,
-            1.0f, 0.0f, 0.0f,
+            0.5f, 0.5f, 0.0f, // x, y, z
+            1.0f, 0.0f, 0.0f, // color
 
             // bottom right vertex 1
-            0.5f, -0.5f, 0.0f,
-            0.0f, 1.0f, 0.0f,
+            0.5f, -0.5f, 0.0f, // x, y, z
+            0.0f, 1.0f, 0.0f, // color
 
             // bottom left vertex 2
-            -0.5f, -0.5f, 0.0f,
-            0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, 0.0f, // x, y, z
+            0.0f, 0.0f, 1.0f, // color
 
             // top left vertex 3
-            -0.5f, 0.5f, 0.0f,
-            1.0f, 0.0f, 1.0f,
+            -0.5f, 0.5f, 0.0f, // x, y, z
+            1.0f, 0.0f, 1.0f, // color
+    };
+
+    /*
+    * Create a buffer object for the indices
+    */
+    GLushort indices[] = {
+            0,1,3, // Triangle 1
+            1,2,3, // Triangle 2
     };
 
     glGenVertexArrays(1, &VaoId);
@@ -359,14 +380,6 @@ void UCreateVBO(){
     glEnableVertexAttribArray(1); // Specifies position 1 for the color values in the buffer
     // Parameters: attribPosition 1 | floats per color is 4 i.e. rgba | data type | deactivaate normalization | 7 strides until the next color i.e. rgbaxyz | 3 floats until the beginning of each color
     glVertexAttribPointer(1, VertexInfo.getColorOffset(), GL_FLOAT, GL_FALSE, VertexInfo.getColorStride(), VertexInfo.getRGBAOffset());
-
-    /*
-     * Create a buffer object for the indices
-     */
-    GLushort indices[] = {
-            0,1,3,
-            1,2,3,
-    };
 
     glGenBuffers(1, IndexBufferId);
 
