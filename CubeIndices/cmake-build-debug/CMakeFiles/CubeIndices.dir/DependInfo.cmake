@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/CubeIndices/Tutorial4-4_verbatim.cpp" "C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/CubeIndices/cmake-build-debug/CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.obj"
+  "C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/CubeIndices/Tutorial4-4.cpp" "C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/CubeIndices/cmake-build-debug/CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.obj"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

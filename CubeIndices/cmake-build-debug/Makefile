@@ -122,32 +122,32 @@ CubeIndices/fast:
 	$(MAKE) -f CMakeFiles\CubeIndices.dir\build.make CMakeFiles/CubeIndices.dir/build
 .PHONY : CubeIndices/fast
 
-Tutorial4-4_verbatim.obj: Tutorial4-4_verbatim.cpp.obj
+Tutorial4-4.obj: Tutorial4-4.cpp.obj
 
-.PHONY : Tutorial4-4_verbatim.obj
+.PHONY : Tutorial4-4.obj
 
 # target to build an object file
-Tutorial4-4_verbatim.cpp.obj:
-	$(MAKE) -f CMakeFiles\CubeIndices.dir\build.make CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.obj
-.PHONY : Tutorial4-4_verbatim.cpp.obj
+Tutorial4-4.cpp.obj:
+	$(MAKE) -f CMakeFiles\CubeIndices.dir\build.make CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.obj
+.PHONY : Tutorial4-4.cpp.obj
 
-Tutorial4-4_verbatim.i: Tutorial4-4_verbatim.cpp.i
+Tutorial4-4.i: Tutorial4-4.cpp.i
 
-.PHONY : Tutorial4-4_verbatim.i
+.PHONY : Tutorial4-4.i
 
 # target to preprocess a source file
-Tutorial4-4_verbatim.cpp.i:
-	$(MAKE) -f CMakeFiles\CubeIndices.dir\build.make CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.i
-.PHONY : Tutorial4-4_verbatim.cpp.i
+Tutorial4-4.cpp.i:
+	$(MAKE) -f CMakeFiles\CubeIndices.dir\build.make CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.i
+.PHONY : Tutorial4-4.cpp.i
 
-Tutorial4-4_verbatim.s: Tutorial4-4_verbatim.cpp.s
+Tutorial4-4.s: Tutorial4-4.cpp.s
 
-.PHONY : Tutorial4-4_verbatim.s
+.PHONY : Tutorial4-4.s
 
 # target to generate assembly for a file
-Tutorial4-4_verbatim.cpp.s:
-	$(MAKE) -f CMakeFiles\CubeIndices.dir\build.make CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.s
-.PHONY : Tutorial4-4_verbatim.cpp.s
+Tutorial4-4.cpp.s:
+	$(MAKE) -f CMakeFiles\CubeIndices.dir\build.make CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.s
+.PHONY : Tutorial4-4.cpp.s
 
 # Help Target
 help:
@@ -158,9 +158,9 @@ help:
 	@echo ... rebuild_cache
 	@echo ... CubeIndices
 	@echo ... edit_cache
-	@echo ... Tutorial4-4_verbatim.obj
-	@echo ... Tutorial4-4_verbatim.i
-	@echo ... Tutorial4-4_verbatim.s
+	@echo ... Tutorial4-4.obj
+	@echo ... Tutorial4-4.i
+	@echo ... Tutorial4-4.s
 .PHONY : help
 
 

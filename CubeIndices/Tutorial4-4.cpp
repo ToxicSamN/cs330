@@ -42,16 +42,16 @@ GLuint
         VboId,
         EboId,
         ColorBufferId,
-        IndexBufferId[1],
+        IndexBufferId,
         ActiveIndexBuffer = 0,
         texture;
 
 /*Vertex Shader Program Source Code*/
 const GLchar * vertexShaderSource = GLSL(330,
-                                   in layout(location=0) vec3 vertex_Position; // Receive vertex coordinates from attribute 0. i.e. 2 floats per vertex
+                                   layout(location=0) in vec3 vertex_Position; // Receive vertex coordinates from attribute 0. i.e. 2 floats per vertex
 
                                    /*Get the vertex colors from the Vertex Buffer object*/
-                                   in layout(location=1) vec3 colorFromVBO; // for attribute 1 expect vec(4) floats passed into the vertex shader
+                                   layout(location=1) in vec3 colorFromVBO; // for attribute 1 expect vec(4) floats passed into the vertex shader
 
                                    out vec3 colorFromVShader; // declare a vec 4 variable that will referencethe vertex colors passed into the Vertex shader from the buffer
 
@@ -167,6 +167,7 @@ GLvoid* VertexMeta::getRGBAOffset() {
 int main(int argc, char* argv[]) {
     UInitialize(argc, argv); // Initialize the OpenGL program
     glutMainLoop(); // Starts the OpenGL loop in the background
+
     exit(EXIT_SUCCESS); // Terminates the program successfully
 }
 
@@ -187,7 +188,7 @@ void UInitialize(int argc, char* argv[]){
 
     // checks glew status
     GlewInitResult = glewInit();
-    if (GLEW_OK != GlewInitResult){
+    if (GlewInitResult != GLEW_OK){
         fprintf(stderr, "ERROR: %s\n", glewGetErrorString(GlewInitResult));
         exit(EXIT_FAILURE);
     }
@@ -195,8 +196,8 @@ void UInitialize(int argc, char* argv[]){
     // Displays GPU OpenGL version
     fprintf(stderr, "INFO: OpenGL Version: %s\n", glGetString(GL_VERSION));
 
-    UCreateVBO(); // Calls the function to create the vertex buffer object
     UCreateShader(); // Calls the function to create the shader program
+    UCreateVBO(); // Calls the function to create the vertex buffer object
 
     // Sets the background color of the window to black, Optional
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -207,11 +208,11 @@ void UInitWindow(int argc, char* argv[]){
     // Initialize freeglut
     glutInit(&argc, argv);
 
-    // Sets the window size
-    glutInitWindowSize(WindowWidth, WindowHeight);
-
     // Memory buffer setup for display
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+
+    // Sets the window size
+    glutInitWindowSize(WindowWidth, WindowHeight);
 
     // Creates a window with the macro placeholder title
     glutCreateWindow(WINDOW_TITLE);
@@ -232,6 +233,9 @@ void UResizeWindow(int w, int h){
 
 /* Renders Graphics */
 void URenderGraphics(void){
+
+    glEnable(GL_DEPTH_TEST); // Enable z-depth
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glBindVertexArray(VaoId);
@@ -267,7 +271,7 @@ void URenderGraphics(void){
 
     /* Creates the triangle */
     // Draw the triangle using the indices
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0); // deactivates the vertex array object
 
@@ -347,7 +351,7 @@ void UCreateVBO(){
     /*
     * Create a buffer object for the indices
     */
-    GLushort indices[] = {
+    GLuint indices[] = {
             0,1,3, // Triangle 1
             1,2,3, // Triangle 2
             0,1,4, // Triangle 3
@@ -366,7 +370,7 @@ void UCreateVBO(){
     glBindVertexArray(VaoId);
 
     //GLuint VboId; // variable for vertex buffer object id
-    glGenBuffers(2, &VboId); // Creates 2 buffers
+    glGenBuffers(1, &VboId); // Creates 2 buffers
     glBindBuffer(GL_ARRAY_BUFFER, VboId); // Activates the buffer
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sends vertex or coordinate data to the GPU
 
@@ -377,19 +381,18 @@ void UCreateVBO(){
      * Instructs the GPU on how to handle the vertex buffer object data.
      * Parameters: attribPointerPosition | coordinates per vertex | data type | deactivate normalization | 0 strides | o offset
      */
-    glVertexAttribPointer(0, VertexInfo.getDimension(), GL_FLOAT, GL_FALSE, VertexInfo.getVertexStride(), 0);
+    glVertexAttribPointer(0, VertexInfo.getDimension(), GL_FLOAT, GL_FALSE, VertexInfo.getVertexStride(), (GLvoid*)0);
 
     /*Sets an attribute pointer position for the vertex colors i.e. Attribute 1 for rgba floats. Attribute 0 was for position x, y */
     glEnableVertexAttribArray(1); // Specifies position 1 for the color values in the buffer
     // Parameters: attribPosition 1 | floats per color is 4 i.e. rgba | data type | deactivaate normalization | 7 strides until the next color i.e. rgbaxyz | 3 floats until the beginning of each color
     glVertexAttribPointer(1, VertexInfo.getColorOffset(), GL_FLOAT, GL_FALSE, VertexInfo.getColorStride(), VertexInfo.getRGBAOffset());
 
-    glGenBuffers(1, IndexBufferId);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[0]);
+    glGenBuffers(1, &IndexBufferId);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[0]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId);
 
 }
 // Destory VBO properly
@@ -403,7 +406,7 @@ void DestroyVBO(void){
     glDeleteBuffers(1, &VboId);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glDeleteBuffers(2, IndexBufferId);
+    glDeleteBuffers(1, &IndexBufferId);
 
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &VaoId);
@@ -427,21 +430,21 @@ void DestroyVBO(void){
  */
 void KeyboardFunction(unsigned char Key, int X, int Y)
 {
-    switch (Key)
-    {
-        case 'T':
-            ActiveIndexBuffer = 1;
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[ActiveIndexBuffer]);
-            break;
-        case 't':
-        {
-            ActiveIndexBuffer = 0;
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[ActiveIndexBuffer]);
-            break;
-        }
-        default:
-            break;
-    }
+//    switch (Key)
+//    {
+//        case 'T':
+//            ActiveIndexBuffer = 1;
+//            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[ActiveIndexBuffer]);
+//            break;
+//        case 't':
+//        {
+//            ActiveIndexBuffer = 0;
+//            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId[ActiveIndexBuffer]);
+//            break;
+//        }
+//        default:
+//            break;
+//    }
 }
 
 /*
