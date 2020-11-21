@@ -4,7 +4,8 @@ project(CubeIndices)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_OBJECT_PATH_MAX 350)
 
-add_executable(CubeIndices Tutorial4-4.cpp)
+# add_executable(CubeIndices Tutorial4-4.cpp)
+add_executable(CubeIndices Tutorial4-4_verbatim.cpp)
 
 target_link_libraries(CubeIndices glew32)
 target_link_libraries(CubeIndices opengl32)

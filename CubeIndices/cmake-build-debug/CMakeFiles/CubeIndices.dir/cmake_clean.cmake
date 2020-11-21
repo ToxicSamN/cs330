@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.obj"
+  "CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.obj"
   "CubeIndices.exe"
   "CubeIndices.exe.manifest"
   "CubeIndices.pdb"

@@ -47,24 +47,13 @@ RM = "C:\Program Files\JetBrains\CLion 2020.1.1\bin\cmake\win\bin\cmake.exe" -E 
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices"
+CMAKE_SOURCE_DIR = "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck__wk4_4-1PracticeActivity5"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices\cmake-build-debug"
+CMAKE_BINARY_DIR = "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck__wk4_4-1PracticeActivity5\cmake-build-debug"
 
 #=============================================================================
 # Targets provided globally by CMake.
-
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	"C:\Program Files\JetBrains\CLion 2020.1.1\bin\cmake\win\bin\cmake.exe" -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
 
 # Special rule for the target edit_cache
 edit_cache:
@@ -77,11 +66,22 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	"C:\Program Files\JetBrains\CLion 2020.1.1\bin\cmake\win\bin\cmake.exe" -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
+
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices\cmake-build-debug\CMakeFiles" "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices\cmake-build-debug\CMakeFiles\progress.marks"
+	$(CMAKE_COMMAND) -E cmake_progress_start "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck__wk4_4-1PracticeActivity5\cmake-build-debug\CMakeFiles" "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck__wk4_4-1PracticeActivity5\cmake-build-debug\CMakeFiles\progress.marks"
 	$(MAKE) -f CMakeFiles\Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices\cmake-build-debug\CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck__wk4_4-1PracticeActivity5\cmake-build-debug\CMakeFiles" 0
 .PHONY : all
 
 # The main clean target
@@ -110,44 +110,44 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named CubeIndices
+# Target rules for targets named SammyShuck__wk4_4_1PracticeActivity5
 
 # Build rule for target.
-CubeIndices: cmake_check_build_system
-	$(MAKE) -f CMakeFiles\Makefile2 CubeIndices
-.PHONY : CubeIndices
+SammyShuck__wk4_4_1PracticeActivity5: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 SammyShuck__wk4_4_1PracticeActivity5
+.PHONY : SammyShuck__wk4_4_1PracticeActivity5
 
 # fast build rule for target.
-CubeIndices/fast:
-	$(MAKE) -f CMakeFiles\CubeIndices.dir\build.make CMakeFiles/CubeIndices.dir/build
-.PHONY : CubeIndices/fast
+SammyShuck__wk4_4_1PracticeActivity5/fast:
+	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PracticeActivity5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/build
+.PHONY : SammyShuck__wk4_4_1PracticeActivity5/fast
 
-Tutorial4-4_verbatim.obj: Tutorial4-4_verbatim.cpp.obj
+SammyShuck_wk4_PA4-1.obj: SammyShuck_wk4_PA4-1.cpp.obj
 
-.PHONY : Tutorial4-4_verbatim.obj
+.PHONY : SammyShuck_wk4_PA4-1.obj
 
 # target to build an object file
-Tutorial4-4_verbatim.cpp.obj:
-	$(MAKE) -f CMakeFiles\CubeIndices.dir\build.make CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.obj
-.PHONY : Tutorial4-4_verbatim.cpp.obj
+SammyShuck_wk4_PA4-1.cpp.obj:
+	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PracticeActivity5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/SammyShuck_wk4_PA4-1.cpp.obj
+.PHONY : SammyShuck_wk4_PA4-1.cpp.obj
 
-Tutorial4-4_verbatim.i: Tutorial4-4_verbatim.cpp.i
+SammyShuck_wk4_PA4-1.i: SammyShuck_wk4_PA4-1.cpp.i
 
-.PHONY : Tutorial4-4_verbatim.i
+.PHONY : SammyShuck_wk4_PA4-1.i
 
 # target to preprocess a source file
-Tutorial4-4_verbatim.cpp.i:
-	$(MAKE) -f CMakeFiles\CubeIndices.dir\build.make CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.i
-.PHONY : Tutorial4-4_verbatim.cpp.i
+SammyShuck_wk4_PA4-1.cpp.i:
+	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PracticeActivity5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/SammyShuck_wk4_PA4-1.cpp.i
+.PHONY : SammyShuck_wk4_PA4-1.cpp.i
 
-Tutorial4-4_verbatim.s: Tutorial4-4_verbatim.cpp.s
+SammyShuck_wk4_PA4-1.s: SammyShuck_wk4_PA4-1.cpp.s
 
-.PHONY : Tutorial4-4_verbatim.s
+.PHONY : SammyShuck_wk4_PA4-1.s
 
 # target to generate assembly for a file
-Tutorial4-4_verbatim.cpp.s:
-	$(MAKE) -f CMakeFiles\CubeIndices.dir\build.make CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.s
-.PHONY : Tutorial4-4_verbatim.cpp.s
+SammyShuck_wk4_PA4-1.cpp.s:
+	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PracticeActivity5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/SammyShuck_wk4_PA4-1.cpp.s
+.PHONY : SammyShuck_wk4_PA4-1.cpp.s
 
 # Help Target
 help:
@@ -155,12 +155,12 @@ help:
 	@echo ... all (the default if no target is provided)
 	@echo ... clean
 	@echo ... depend
-	@echo ... rebuild_cache
-	@echo ... CubeIndices
 	@echo ... edit_cache
-	@echo ... Tutorial4-4_verbatim.obj
-	@echo ... Tutorial4-4_verbatim.i
-	@echo ... Tutorial4-4_verbatim.s
+	@echo ... SammyShuck__wk4_4_1PracticeActivity5
+	@echo ... rebuild_cache
+	@echo ... SammyShuck_wk4_PA4-1.obj
+	@echo ... SammyShuck_wk4_PA4-1.i
+	@echo ... SammyShuck_wk4_PA4-1.s
 .PHONY : help
 
 

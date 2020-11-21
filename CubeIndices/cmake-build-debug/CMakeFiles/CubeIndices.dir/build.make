@@ -56,27 +56,27 @@ include CMakeFiles/CubeIndices.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/CubeIndices.dir/flags.make
 
-CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.obj: CMakeFiles/CubeIndices.dir/flags.make
-CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.obj: ../Tutorial4-4.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices\cmake-build-debug\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.obj"
-	C:\TDM-GCC-64\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\CubeIndices.dir\Tutorial4-4.cpp.obj -c "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices\Tutorial4-4.cpp"
+CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.obj: CMakeFiles/CubeIndices.dir/flags.make
+CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.obj: ../Tutorial4-4_verbatim.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices\cmake-build-debug\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.obj"
+	C:\TDM-GCC-64\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\CubeIndices.dir\Tutorial4-4_verbatim.cpp.obj -c "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices\Tutorial4-4_verbatim.cpp"
 
-CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.i"
-	C:\TDM-GCC-64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices\Tutorial4-4.cpp" > CMakeFiles\CubeIndices.dir\Tutorial4-4.cpp.i
+CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.i"
+	C:\TDM-GCC-64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices\Tutorial4-4_verbatim.cpp" > CMakeFiles\CubeIndices.dir\Tutorial4-4_verbatim.cpp.i
 
-CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.s"
-	C:\TDM-GCC-64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices\Tutorial4-4.cpp" -o CMakeFiles\CubeIndices.dir\Tutorial4-4.cpp.s
+CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.s"
+	C:\TDM-GCC-64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\CubeIndices\Tutorial4-4_verbatim.cpp" -o CMakeFiles\CubeIndices.dir\Tutorial4-4_verbatim.cpp.s
 
 # Object files for target CubeIndices
 CubeIndices_OBJECTS = \
-"CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.obj"
+"CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.obj"
 
 # External object files for target CubeIndices
 CubeIndices_EXTERNAL_OBJECTS =
 
-CubeIndices.exe: CMakeFiles/CubeIndices.dir/Tutorial4-4.cpp.obj
+CubeIndices.exe: CMakeFiles/CubeIndices.dir/Tutorial4-4_verbatim.cpp.obj
 CubeIndices.exe: CMakeFiles/CubeIndices.dir/build.make
 CubeIndices.exe: CMakeFiles/CubeIndices.dir/linklibs.rsp
 CubeIndices.exe: CMakeFiles/CubeIndices.dir/objects1.rsp
