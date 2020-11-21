@@ -337,15 +337,15 @@ void UCreateVBO(){
     // Position and color data
     GLfloat vertices[] = {
             /* x, y, z */        /* r,g,b color */
-            0.5f, 0.5f, 0.0f,    1.0f, 0.0f, 0.0f, // top right vertex 0
-            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f, // bottom right vertex 1
-            -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f, // bottom left vertex 2
-            -0.5f, 0.5f, 0.0f,   1.0f, 0.0f, 1.0f, // top left vertex 3
+             0.5f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f, // top right vertex 0
+             0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f, // bottom right vertex 1
+            -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, 1.0f, // bottom left vertex 2
+            -0.5f,  0.5f, 0.0f,    1.0f, 0.0f, 1.0f, // top left vertex 3
 
-            0.5f, -0.5f, -1.0f,  0.5f, 0.5f, 1.0f, // bottom right-right vertex 4
-            0.5f, 0.5f, -1.0f,   1.0f, 1.0f, 0.5f, // top left-right vertex 5
-            -0.5f, 0.5f, -1.0f,  0.2f, 0.2f, 0.5f, // top left-top vertex 6
-            -0.5f, -0.5f, -1.0f, 1.0f, 0.0f, 1.0f, // bottom left-back vertex 7
+             0.5f, -0.5f, -1.0f,   0.5f, 0.5f, 1.0f, // bottom right-right vertex 4
+             0.5f,  0.5f, -1.0f,   1.0f, 1.0f, 0.5f, // top left-right vertex 5
+            -0.5f,  0.5f, -1.0f,   0.2f, 0.2f, 0.5f, // top left-top vertex 6
+            -0.5f, -0.5f, -1.0f,   1.0f, 0.0f, 1.0f, // bottom left-back vertex 7
     };
 
     /*
