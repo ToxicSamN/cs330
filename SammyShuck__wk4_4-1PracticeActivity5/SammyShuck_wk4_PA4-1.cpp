@@ -240,13 +240,14 @@ void URenderGraphics(void){
 
     glBindVertexArray(VaoId);
 
-    //Declares a 4x4 identity matrix uniform to the handle transformations
+    // Declares a 4x4 identity matrix uniform to the handle transformations
     glm::mat4  model;
+    // place the object at the center of the viewport
     model = glm::translate(model, glm::vec3(0.0f,0.0f,0.0f));
-    //Rotates Shape 45 degrees on the z axis
-    model = glm::rotate(model, 45.0f, glm::vec3(1.0f,1.0f,1.0f));
-    // Scales the shape down by half it's original size in xyz
-    model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
+    // Rotates Shape N degrees on the z axis
+    model = glm::rotate(model, 45.0f, glm::vec3(0.0f,1.0f,0.0f));
+    // Scales the shape by a scale of 2
+    model = glm::scale(model, glm::vec3(1.5f, 1.5f, 1.5f));
 
     // Transforms the camera
     glm::mat4 view;
@@ -255,7 +256,6 @@ void URenderGraphics(void){
 
     // Creates a perspective projection
     glm::mat4 projection;
-    //projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f,100.0f);
     projection = glm::perspective(45.0f, (GLfloat)WindowWidth / (GLfloat)WindowHeight, 0.1f, 100.0f);
 
     // Retrieves and passes transform matrices to the shader program
@@ -271,7 +271,7 @@ void URenderGraphics(void){
 
     /* Creates the triangle */
     // Draw the triangle using the indices
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, 15, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0); // deactivates the vertex array object
 
@@ -337,33 +337,22 @@ void UCreateVBO(){
     // Position and color data
     GLfloat vertices[] = {
             /* x, y, z */        /* r,g,b color */
-            0.5f, 0.5f, 0.0f,    1.0f, 0.0f, 0.0f, // top right vertex 0
-            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f, // bottom right vertex 1
-            -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f, // bottom left vertex 2
-            -0.5f, 0.5f, 0.0f,   1.0f, 0.0f, 1.0f, // top left vertex 3
-
-            0.5f, -0.5f, -1.0f,  0.5f, 0.5f, 1.0f, // bottom right-right vertex 4
-            0.5f, 0.5f, -1.0f,   1.0f, 1.0f, 0.5f, // top left-right vertex 5
-            -0.5f, 0.5f, -1.0f,  0.2f, 0.2f, 0.5f, // top left-top vertex 6
-            -0.5f, -0.5f, -1.0f, 1.0f, 0.0f, 1.0f, // bottom left-back vertex 7
+             0.0f,  1.0f,  0.0f,    1.0f, 1.0f, 1.0f, // top tip of pyramid vertex 0 - white[1,1,1]
+            -1.0f, -1.0f,  1.0f,    1.0f, 0.0f, 1.0f, // bottom front left vertex 1 - pink[1,0,1]
+             1.0f, -1.0f,  1.0f,    1.0f, 1.0f, 0.0f, // bottom front right vertex 2 - yellow[1,1,0]
+             1.0f, -1.0f, -1.0f,    0.0f, 0.0f, 1.0f, // bottom back right vertex 3 - blue[0,0,1]
+            -1.0f, -1.0f, -1.0f,    0.0f, 1.0f, 1.0f, // bottom back left vertex 4 - cyan[0,1,1]
     };
 
     /*
     * Create a buffer object for the indices
     */
     GLuint indices[] = {
-            0,1,3, // Triangle 1
-            1,2,3, // Triangle 2
-            0,1,4, // Triangle 3
-            0,4,5, // Triangle 4
-            0,5,6, // Triangle 5
-            0,3,6, // Triangle 6
-            4,5,6, // Triangle 7
-            4,6,7, // Triangle 8
-            2,3,6, // Triangle 9
-            2,6,7, // Triangle 10
-            1,4,7, // Triangle 11
-            1,2,7, // Triangle 12
+            0,1,2,
+            0,2,3,
+            0,3,4,
+            0,2,3,
+            0,4,1,
     };
 
     glGenVertexArrays(1, &VaoId);
