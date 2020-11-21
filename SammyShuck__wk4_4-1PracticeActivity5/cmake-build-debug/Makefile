@@ -55,17 +55,6 @@ CMAKE_BINARY_DIR = "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	"C:\Program Files\JetBrains\CLion 2020.1.1\bin\cmake\win\bin\cmake.exe" -E echo "No interactive CMake dialog available."
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
-
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
@@ -76,6 +65,17 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
+
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	"C:\Program Files\JetBrains\CLion 2020.1.1\bin\cmake\win\bin\cmake.exe" -E echo "No interactive CMake dialog available."
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -110,17 +110,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named SammyShuck__wk4_4_1PracticeActivity5
+# Target rules for targets named SammyShuck__wk4_4_1PA5
 
 # Build rule for target.
-SammyShuck__wk4_4_1PracticeActivity5: cmake_check_build_system
-	$(MAKE) -f CMakeFiles\Makefile2 SammyShuck__wk4_4_1PracticeActivity5
-.PHONY : SammyShuck__wk4_4_1PracticeActivity5
+SammyShuck__wk4_4_1PA5: cmake_check_build_system
+	$(MAKE) -f CMakeFiles\Makefile2 SammyShuck__wk4_4_1PA5
+.PHONY : SammyShuck__wk4_4_1PA5
 
 # fast build rule for target.
-SammyShuck__wk4_4_1PracticeActivity5/fast:
-	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PracticeActivity5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/build
-.PHONY : SammyShuck__wk4_4_1PracticeActivity5/fast
+SammyShuck__wk4_4_1PA5/fast:
+	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PA5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PA5.dir/build
+.PHONY : SammyShuck__wk4_4_1PA5/fast
 
 SammyShuck_wk4_PA4-1.obj: SammyShuck_wk4_PA4-1.cpp.obj
 
@@ -128,7 +128,7 @@ SammyShuck_wk4_PA4-1.obj: SammyShuck_wk4_PA4-1.cpp.obj
 
 # target to build an object file
 SammyShuck_wk4_PA4-1.cpp.obj:
-	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PracticeActivity5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/SammyShuck_wk4_PA4-1.cpp.obj
+	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PA5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PA5.dir/SammyShuck_wk4_PA4-1.cpp.obj
 .PHONY : SammyShuck_wk4_PA4-1.cpp.obj
 
 SammyShuck_wk4_PA4-1.i: SammyShuck_wk4_PA4-1.cpp.i
@@ -137,7 +137,7 @@ SammyShuck_wk4_PA4-1.i: SammyShuck_wk4_PA4-1.cpp.i
 
 # target to preprocess a source file
 SammyShuck_wk4_PA4-1.cpp.i:
-	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PracticeActivity5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/SammyShuck_wk4_PA4-1.cpp.i
+	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PA5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PA5.dir/SammyShuck_wk4_PA4-1.cpp.i
 .PHONY : SammyShuck_wk4_PA4-1.cpp.i
 
 SammyShuck_wk4_PA4-1.s: SammyShuck_wk4_PA4-1.cpp.s
@@ -146,7 +146,7 @@ SammyShuck_wk4_PA4-1.s: SammyShuck_wk4_PA4-1.cpp.s
 
 # target to generate assembly for a file
 SammyShuck_wk4_PA4-1.cpp.s:
-	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PracticeActivity5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/SammyShuck_wk4_PA4-1.cpp.s
+	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PA5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PA5.dir/SammyShuck_wk4_PA4-1.cpp.s
 .PHONY : SammyShuck_wk4_PA4-1.cpp.s
 
 # Help Target
@@ -155,9 +155,9 @@ help:
 	@echo ... all (the default if no target is provided)
 	@echo ... clean
 	@echo ... depend
-	@echo ... edit_cache
-	@echo ... SammyShuck__wk4_4_1PracticeActivity5
 	@echo ... rebuild_cache
+	@echo ... SammyShuck__wk4_4_1PA5
+	@echo ... edit_cache
 	@echo ... SammyShuck_wk4_PA4-1.obj
 	@echo ... SammyShuck_wk4_PA4-1.i
 	@echo ... SammyShuck_wk4_PA4-1.s

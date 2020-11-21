@@ -53,5 +53,5 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
-  "CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/DependInfo.cmake"
+  "CMakeFiles/SammyShuck__wk4_4_1PA5.dir/DependInfo.cmake"
   )

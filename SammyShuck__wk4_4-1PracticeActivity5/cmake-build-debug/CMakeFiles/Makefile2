@@ -52,7 +52,7 @@ CMAKE_BINARY_DIR = "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/all
+all: CMakeFiles/SammyShuck__wk4_4_1PA5.dir/all
 
 .PHONY : all
 
@@ -62,36 +62,36 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/clean
+clean: CMakeFiles/SammyShuck__wk4_4_1PA5.dir/clean
 
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir
+# Target rules for target CMakeFiles/SammyShuck__wk4_4_1PA5.dir
 
 # All Build rule for target.
-CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/all:
-	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PracticeActivity5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/depend
-	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PracticeActivity5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir="C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck__wk4_4-1PracticeActivity5\cmake-build-debug\CMakeFiles" --progress-num=1,2 "Built target SammyShuck__wk4_4_1PracticeActivity5"
-.PHONY : CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/all
+CMakeFiles/SammyShuck__wk4_4_1PA5.dir/all:
+	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PA5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PA5.dir/depend
+	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PA5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PA5.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir="C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck__wk4_4-1PracticeActivity5\cmake-build-debug\CMakeFiles" --progress-num=1,2 "Built target SammyShuck__wk4_4_1PA5"
+.PHONY : CMakeFiles/SammyShuck__wk4_4_1PA5.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/rule: cmake_check_build_system
+CMakeFiles/SammyShuck__wk4_4_1PA5.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck__wk4_4-1PracticeActivity5\cmake-build-debug\CMakeFiles" 2
-	$(MAKE) -f CMakeFiles\Makefile2 CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/all
+	$(MAKE) -f CMakeFiles\Makefile2 CMakeFiles/SammyShuck__wk4_4_1PA5.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck__wk4_4-1PracticeActivity5\cmake-build-debug\CMakeFiles" 0
-.PHONY : CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/rule
+.PHONY : CMakeFiles/SammyShuck__wk4_4_1PA5.dir/rule
 
 # Convenience name for target.
-SammyShuck__wk4_4_1PracticeActivity5: CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/rule
+SammyShuck__wk4_4_1PA5: CMakeFiles/SammyShuck__wk4_4_1PA5.dir/rule
 
-.PHONY : SammyShuck__wk4_4_1PracticeActivity5
+.PHONY : SammyShuck__wk4_4_1PA5
 
 # clean rule for target.
-CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/clean:
-	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PracticeActivity5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/clean
-.PHONY : CMakeFiles/SammyShuck__wk4_4_1PracticeActivity5.dir/clean
+CMakeFiles/SammyShuck__wk4_4_1PA5.dir/clean:
+	$(MAKE) -f CMakeFiles\SammyShuck__wk4_4_1PA5.dir\build.make CMakeFiles/SammyShuck__wk4_4_1PA5.dir/clean
+.PHONY : CMakeFiles/SammyShuck__wk4_4_1PA5.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.
