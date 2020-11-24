@@ -62,14 +62,22 @@ VaoId,
 
 // Global Camera declarations
 GLfloat
-        cameraSpeed = 0.0500f; // camera movement speed per frame
+        cameraSpeed = 0.0005f; // camera movement speed per frame
 
-glm::vec3 cameraPos = glm::vec3(0.0f,0.0f,5.0f);
+glm::vec3 cameraPos = glm::vec3(0.0f,0.0f,0.0f);
 glm::vec3 cameraUpY = glm::vec3(0.0f,1.0f,0.0f);
 glm::vec3 cameraForwardZ = glm::vec3(0.0f,0.0f,-1.0f);
+glm::vec3 front;
 
 GLchar
         currKey; // store current key pressed
+
+// Global Mouse tracking values
+GLfloat lastMouseX = 400, lastMouseY = 300;
+GLfloat mouseOffsetX, mouseOffsetY, yaw = 0.0f, pitch = 0.0f;
+GLfloat sensitivity = 0.5f;
+bool mouseDetected = true;
+
 
 /*Vertex Shader Program Source Code*/
 const GLchar * vertexShaderSource = GLSL(330,
@@ -249,7 +257,7 @@ void UInitWindow(int argc, char* argv[]){
     glutMouseFunc(MouseClick);
     glutPassiveMotionFunc(MouseMove);
     glutMotionFunc(MousePressMove);
-    glutIdleFunc(IdleFunction);
+    //glutIdleFunc(IdleFunction);
     glutCloseFunc(Cleanup); // properly cleans up system resources
 }
 
@@ -269,6 +277,8 @@ void URenderGraphics(void){
 
     glBindVertexArray(VaoId);
 
+    cameraForwardZ = front;
+
     // Declares a 4x4 identity matrix uniform to the handle transformations
     glm::mat4  model;
     model = glm::translate(model, glm::vec3(0.0f,0.0f,0.0f));
@@ -279,8 +289,7 @@ void URenderGraphics(void){
 
     // Transforms the camera
     glm::mat4 view;
-    // Move the world 0.5 units on x axis and -5 units on z axis
-    view = glm::lookAt(cameraPos, cameraPos + cameraForwardZ, cameraUpY);
+    view = glm::lookAt(cameraForwardZ, cameraPos, cameraUpY);
 
     // Creates a perspective projection
     glm::mat4 projection;
@@ -513,7 +522,32 @@ void MouseClick(int btn, int state, int x, int y){
 
 // tracks the mouse movement withing the window
 void MouseMove(int x, int y){
+    if (mouseDetected) {
+        lastMouseX = x;
+        lastMouseY = y;
+        mouseDetected = false;
+    }
 
+    // Gets the direction the mouse was move in x and y
+    mouseOffsetX = x - lastMouseX;
+    mouseOffsetY = y - lastMouseY;
+
+    // Updates with the new mouse coordinates
+    lastMouseX = x;
+    lastMouseY = y;
+
+    // Applies mouse sensitivity
+    mouseOffsetX *= sensitivity;
+    mouseOffsetY *= sensitivity;
+
+    // Accumulates the yaw and pith variables
+    yaw += mouseOffsetX;
+    pitch += mouseOffsetY;
+
+    // Orbits around the center
+    front.x = 10.0f * cos(glm::radians(yaw));
+    front.y = 10.0f * sin(glm::radians(pitch));
+    front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw)) * 10.f;
 }
 
 // tracks when mouse button is pressed and moved
