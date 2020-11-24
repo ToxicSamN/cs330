@@ -1,0 +1,3 @@
+C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/Tutorial5-1/cmake-build-debug/CMakeFiles/Tutorial5_1.dir
+C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/Tutorial5-1/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/Tutorial5-1/cmake-build-debug/CMakeFiles/rebuild_cache.dir
