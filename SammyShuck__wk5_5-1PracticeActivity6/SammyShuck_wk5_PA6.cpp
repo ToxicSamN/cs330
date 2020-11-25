@@ -584,8 +584,6 @@ void MousePressMove(int x, int y){
             std::cout << "scale (X, Y, Z)" << scaleX << " " << scaleY << " " << scaleZ << std::endl;
         }
 
-
-
         // Updates with the new mouse coordinates
         lastMouseX = x;
         lastMouseY = y;
