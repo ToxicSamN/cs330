@@ -1,10 +1,10 @@
 /*
  * Author: Sammy Shuck
- * Name: CS-330 Final Project
- * Week: Seven
- * Assignment: 7-1 Final Project Submission
+ * Name: CS-330 Practice Activity 6
+ * Week: five
+ * Assignment: 5-1 Practice Activity 6
  * Course: CS-330-J2956 Comp Graphic and Visualization 20EW2
- * Date: 12/12/2020
+ * Date: 11/29/2020
  * Version: 1.0
  * Copyright: Copyright © 2017 SNHU COCE
  */
