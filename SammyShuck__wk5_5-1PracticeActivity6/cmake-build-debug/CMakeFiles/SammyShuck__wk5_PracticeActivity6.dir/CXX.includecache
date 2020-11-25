@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/SammyShuck__wk5_5-1PracticeActivity6/SammyShuck_wk5_PA6.cpp
+iostream
+-
+GL/glew.h
+-
+GL/freeglut.h
+-
+glm/glm.hpp
+-
+glm/gtc/matrix_transform.hpp
+-
+glm/gtc/type_ptr.hpp
+-
+
