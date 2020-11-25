@@ -27,9 +27,6 @@ using namespace std;
 #define GLSL(Version, Source) "#version " #Version "\n" #Source
 #endif
 
-/*Variable declarations for shader, window size initialization, buffer and array objects*/
-GLint WindowWidth = 800, WindowHeight = 600;
-
 /*function prototypes*/
 void UResizeWindow(int, int);
 void URenderGraphics(void);
@@ -49,38 +46,50 @@ void MouseMove(int x, int y);
 void MousePressMove(int x, int y);
 void IdleFunction(void);
 
+/* Global variable declarations */
 GLuint
-        VertexShaderId, // vertex shader
-FragmentShaderId, // fragment shader
-ProgramId, // shader program
-VaoId,
-        VboId,
-        ColorBufferId,
-        IndexBufferId,
-        ActiveIndexBuffer = 0,
-        texture;
+    WindowWidth = 800,
+    WindowHeight = 600,
+    VertexShaderId, // vertex shader
+    FragmentShaderId, // fragment shader
+    ProgramId, // shader program
+    VaoId,
+    VboId,
+    IndexBufferId,
+    modKey,
+    texture;
 
-// Global Camera declarations
 GLfloat
-        cameraSpeed = 0.0005f; // camera movement speed per frame
+    cameraSpeed = 0.0005f, // camera movement speed per frame
+    zoomSpeed = 0.5f, // camera zoom speed per frame
+    lastMouseX = 400,
+    lastMouseY = 300,
+    mouseOffsetX,
+    mouseOffsetY,
+    yaw = 0.0f,
+    pitch = 0.0f,
+    sensitivity = 0.5f,
+    scaleX = 1.0f,
+    scaleY = 1.0f,
+    scaleZ = 1.0f;
 
-glm::vec3 cameraPos = glm::vec3(0.0f,0.0f,0.0f);
-glm::vec3 cameraUpY = glm::vec3(0.0f,1.0f,0.0f);
-glm::vec3 cameraForwardZ = glm::vec3(0.0f,0.0f,-1.0f);
-glm::vec3 front;
+glm::vec3
+    front,
+    cameraForwardZ,
+    cameraPos = glm::vec3(0.0f,0.0f,0.0f),
+    cameraUpY = glm::vec3(0.0f,1.0f,0.0f);
 
 GLchar
-        currKey; // store current key pressed
+    currKey; // store current key pressed
 
-// Global Mouse tracking values
-GLfloat lastMouseX = 400, lastMouseY = 300;
-GLfloat mouseOffsetX, mouseOffsetY, yaw = 0.0f, pitch = 0.0f;
-GLfloat sensitivity = 0.5f;
-bool mouseDetected = true;
+bool
+    mouseDetected = true, // flag for determinig when the mouse is detected in the window
+    zoom, // flag to tell the program to zoom
+    orbit; // flag to tell the program to orbit
 
 
 /*Vertex Shader Program Source Code*/
-const GLchar * vertexShaderSource = GLSL(330,
+const GLchar* vertexShaderSource = GLSL(330,
                                          layout(location=0) in vec3 vertex_Position; // Receive vertex coordinates from attribute 0. i.e. 2 floats per vertex
 
                                                  /*Get the vertex colors from the Vertex Buffer object*/
@@ -100,7 +109,7 @@ const GLchar * vertexShaderSource = GLSL(330,
                                     );
 
 /*  Fragment Shader Program Source Code*/
-const GLchar * fragmentShaderSource = GLSL(330,
+const GLchar* fragmentShaderSource = GLSL(330,
                                            in vec3 colorFromVShader; // Vertex colors from the vertex shader
 
                                                    out vec4 gpuColor; // vec 4 variable that will reference the vertex colors passed into the fragment shader from the vertex shader
@@ -257,7 +266,7 @@ void UInitWindow(int argc, char* argv[]){
     glutMouseFunc(MouseClick);
     glutPassiveMotionFunc(MouseMove);
     glutMotionFunc(MousePressMove);
-    //glutIdleFunc(IdleFunction);
+    glutIdleFunc(IdleFunction);
     glutCloseFunc(Cleanup); // properly cleans up system resources
 }
 
@@ -285,7 +294,7 @@ void URenderGraphics(void){
     //Rotates Shape 45 degrees on the z axis
     model = glm::rotate(model, 45.0f, glm::vec3(0.0f,1.0f,0.0f));
     // Scales the shape down by half it's original size in xyz
-    model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
+    model = glm::scale(model, glm::vec3(scaleX, scaleY, scaleZ));
 
     // Transforms the camera
     glm::mat4 view;
@@ -481,22 +490,18 @@ void KeyboardFunction(unsigned char key, int X, int Y)
     {
         case 'w':
             std::cout << "pressed w" << std::endl;
-            currKey = key;
             cameraPos += cameraSpeed * cameraForwardZ;
             break;
         case 's':
             std::cout << "pressed s" << std::endl;
-            currKey = key;
             cameraPos -= cameraSpeed * cameraForwardZ;
             break;
         case 'a':
             std::cout << "pressed a" << std::endl;
-            currKey = key;
             cameraPos -= glm::normalize(glm::cross(cameraForwardZ, cameraUpY)) * cameraSpeed;
             break;
         case 'd':
             std::cout << "pressed d" << std::endl;
-            currKey = key;
             cameraPos += glm::normalize(glm::cross(cameraForwardZ, cameraUpY)) * cameraSpeed;
             break;
         default:
@@ -509,15 +514,40 @@ void UKeyRelease(unsigned char key, int x, int y){
     currKey = '0';
 }
 
+bool IsAltKeyPressed(){
+    // get the modifier key
+    modKey = glutGetModifiers();
+    // if the modifer key pressed is alt return true
+    return modKey == GLUT_ACTIVE_ALT;
+}
+
 // track mouse button clicks
 void MouseClick(int btn, int state, int x, int y){
-    if ((btn == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN)){
-        std::cout << "left button down" << std::endl;
+    // Alt+Left Mouse is an orbital command
+    if ((btn == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN) && IsAltKeyPressed()){
+        std::cout << "Alt + Left mouse button pressed" << std::endl;
+        zoom = false;
+        orbit = true;
     }
 
-    if ((btn == GLUT_LEFT_BUTTON) && (state == GLUT_UP)){
-        std::cout << "left button up" << std::endl;
+    // Alt+Right Mouse is a zoom command
+    if ((btn == GLUT_RIGHT_BUTTON) && (state == GLUT_DOWN) && IsAltKeyPressed()){
+        std::cout << "Alt + Right mouse button pressed" << std::endl;
+        orbit = false;
+        zoom = true;
     }
+    // reset orbit/zoom variables when mouse press is released
+    if (state == GLUT_UP) {
+        orbit = false;
+        zoom = false;
+    }
+}
+
+void SetView(){
+    // Sets the front variable that controls CameraForwardZ
+    front.x = 10.0f * cos(glm::radians(yaw));
+    front.y = 10.0f * sin(glm::radians(pitch));
+    front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw)) * 10.f;
 }
 
 // tracks the mouse movement withing the window
@@ -528,31 +558,59 @@ void MouseMove(int x, int y){
         mouseDetected = false;
     }
 
-    // Gets the direction the mouse was move in x and y
-    mouseOffsetX = x - lastMouseX;
-    mouseOffsetY = y - lastMouseY;
-
-    // Updates with the new mouse coordinates
-    lastMouseX = x;
-    lastMouseY = y;
-
-    // Applies mouse sensitivity
-    mouseOffsetX *= sensitivity;
-    mouseOffsetY *= sensitivity;
-
-    // Accumulates the yaw and pith variables
-    yaw += mouseOffsetX;
-    pitch += mouseOffsetY;
-
-    // Orbits around the center
-    front.x = 10.0f * cos(glm::radians(yaw));
-    front.y = 10.0f * sin(glm::radians(pitch));
-    front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw)) * 10.f;
+    SetView();
 }
 
 // tracks when mouse button is pressed and moved
 void MousePressMove(int x, int y){
-    std::cout << "mouse press and moved" << std::endl;
+    if (zoom){
+        // if current mouse position y vector is less than the previous vector
+        // zoom out, otherwise current mouse y vector is greater so zoom in
+        if (y < lastMouseY) {
+            // zoom out
+            // if while zooming out the image will reverse and start zooming in again, so let's
+            // control this to not surpass zoomSpeed value
+            if (scaleX <= zoomSpeed) {
+                scaleX = scaleY = scaleZ = zoomSpeed;
+            }else {
+                scaleX = scaleY = scaleZ -= zoomSpeed;
+            }
+            std::cout << "scale (X, Y, Z)" << scaleX << " " << scaleY << " " << scaleZ << std::endl;
+        }else {
+            // zoom in
+            scaleX += zoomSpeed;
+            scaleY += zoomSpeed;
+            scaleZ += zoomSpeed;
+            std::cout << "scale (X, Y, Z)" << scaleX << " " << scaleY << " " << scaleZ << std::endl;
+        }
+
+
+
+        // Updates with the new mouse coordinates
+        lastMouseX = x;
+        lastMouseY = y;
+    }
+
+    if (orbit){
+        // Gets the direction the mouse was move in x and y
+        mouseOffsetX = x - lastMouseX;
+        mouseOffsetY = y - lastMouseY;
+
+        // Updates with the new mouse coordinates
+        lastMouseX = x;
+        lastMouseY = y;
+
+        // Applies mouse sensitivity
+        mouseOffsetX *= sensitivity;
+        mouseOffsetY *= sensitivity;
+
+        // Accumulates the yaw and pith variables
+        yaw += mouseOffsetX;
+        pitch += mouseOffsetY;
+
+    }
+
+    SetView();
 }
 
 /*
