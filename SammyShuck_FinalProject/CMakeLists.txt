@@ -4,7 +4,7 @@ project(SammyShuck_FinalProject)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_OBJECT_PATH_MAX 350)
 
-add_executable(SammyShuck_FinalProject main.cpp)
+add_executable(SammyShuck_FinalProject SammyShuck_FinalProject_WIP.cpp)
 
 target_link_libraries(SammyShuck_FinalProject glew32)
 target_link_libraries(SammyShuck_FinalProject opengl32)

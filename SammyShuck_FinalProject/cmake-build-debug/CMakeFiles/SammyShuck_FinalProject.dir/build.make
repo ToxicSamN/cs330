@@ -56,27 +56,27 @@ include CMakeFiles/SammyShuck_FinalProject.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/SammyShuck_FinalProject.dir/flags.make
 
-CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.obj: CMakeFiles/SammyShuck_FinalProject.dir/flags.make
-CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.obj: ../main.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck_FinalProject\cmake-build-debug\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.obj"
-	C:\TDM-GCC-64\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\SammyShuck_FinalProject.dir\main.cpp.obj -c "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck_FinalProject\main.cpp"
+CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.obj: CMakeFiles/SammyShuck_FinalProject.dir/flags.make
+CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.obj: ../SammyShuck_FinalProject_WIP.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck_FinalProject\cmake-build-debug\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.obj"
+	C:\TDM-GCC-64\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\SammyShuck_FinalProject.dir\SammyShuck_FinalProject_WIP.cpp.obj -c "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck_FinalProject\SammyShuck_FinalProject_WIP.cpp"
 
-CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.i"
-	C:\TDM-GCC-64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck_FinalProject\main.cpp" > CMakeFiles\SammyShuck_FinalProject.dir\main.cpp.i
+CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.i"
+	C:\TDM-GCC-64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck_FinalProject\SammyShuck_FinalProject_WIP.cpp" > CMakeFiles\SammyShuck_FinalProject.dir\SammyShuck_FinalProject_WIP.cpp.i
 
-CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.s"
-	C:\TDM-GCC-64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck_FinalProject\main.cpp" -o CMakeFiles\SammyShuck_FinalProject.dir\main.cpp.s
+CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.s"
+	C:\TDM-GCC-64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck_FinalProject\SammyShuck_FinalProject_WIP.cpp" -o CMakeFiles\SammyShuck_FinalProject.dir\SammyShuck_FinalProject_WIP.cpp.s
 
 # Object files for target SammyShuck_FinalProject
 SammyShuck_FinalProject_OBJECTS = \
-"CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.obj"
+"CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.obj"
 
 # External object files for target SammyShuck_FinalProject
 SammyShuck_FinalProject_EXTERNAL_OBJECTS =
 
-SammyShuck_FinalProject.exe: CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.obj
+SammyShuck_FinalProject.exe: CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.obj
 SammyShuck_FinalProject.exe: CMakeFiles/SammyShuck_FinalProject.dir/build.make
 SammyShuck_FinalProject.exe: CMakeFiles/SammyShuck_FinalProject.dir/linklibs.rsp
 SammyShuck_FinalProject.exe: CMakeFiles/SammyShuck_FinalProject.dir/objects1.rsp

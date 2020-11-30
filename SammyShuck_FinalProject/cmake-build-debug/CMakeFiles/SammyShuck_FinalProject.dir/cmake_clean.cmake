@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.obj"
+  "CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.obj"
   "SammyShuck_FinalProject.exe"
   "SammyShuck_FinalProject.exe.manifest"
   "SammyShuck_FinalProject.pdb"

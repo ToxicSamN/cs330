@@ -122,32 +122,32 @@ SammyShuck_FinalProject/fast:
 	$(MAKE) -f CMakeFiles\SammyShuck_FinalProject.dir\build.make CMakeFiles/SammyShuck_FinalProject.dir/build
 .PHONY : SammyShuck_FinalProject/fast
 
-main.obj: main.cpp.obj
+SammyShuck_FinalProject_WIP.obj: SammyShuck_FinalProject_WIP.cpp.obj
 
-.PHONY : main.obj
+.PHONY : SammyShuck_FinalProject_WIP.obj
 
 # target to build an object file
-main.cpp.obj:
-	$(MAKE) -f CMakeFiles\SammyShuck_FinalProject.dir\build.make CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.obj
-.PHONY : main.cpp.obj
+SammyShuck_FinalProject_WIP.cpp.obj:
+	$(MAKE) -f CMakeFiles\SammyShuck_FinalProject.dir\build.make CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.obj
+.PHONY : SammyShuck_FinalProject_WIP.cpp.obj
 
-main.i: main.cpp.i
+SammyShuck_FinalProject_WIP.i: SammyShuck_FinalProject_WIP.cpp.i
 
-.PHONY : main.i
+.PHONY : SammyShuck_FinalProject_WIP.i
 
 # target to preprocess a source file
-main.cpp.i:
-	$(MAKE) -f CMakeFiles\SammyShuck_FinalProject.dir\build.make CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.i
-.PHONY : main.cpp.i
+SammyShuck_FinalProject_WIP.cpp.i:
+	$(MAKE) -f CMakeFiles\SammyShuck_FinalProject.dir\build.make CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.i
+.PHONY : SammyShuck_FinalProject_WIP.cpp.i
 
-main.s: main.cpp.s
+SammyShuck_FinalProject_WIP.s: SammyShuck_FinalProject_WIP.cpp.s
 
-.PHONY : main.s
+.PHONY : SammyShuck_FinalProject_WIP.s
 
 # target to generate assembly for a file
-main.cpp.s:
-	$(MAKE) -f CMakeFiles\SammyShuck_FinalProject.dir\build.make CMakeFiles/SammyShuck_FinalProject.dir/main.cpp.s
-.PHONY : main.cpp.s
+SammyShuck_FinalProject_WIP.cpp.s:
+	$(MAKE) -f CMakeFiles\SammyShuck_FinalProject.dir\build.make CMakeFiles/SammyShuck_FinalProject.dir/SammyShuck_FinalProject_WIP.cpp.s
+.PHONY : SammyShuck_FinalProject_WIP.cpp.s
 
 # Help Target
 help:
@@ -158,9 +158,9 @@ help:
 	@echo ... SammyShuck_FinalProject
 	@echo ... edit_cache
 	@echo ... rebuild_cache
-	@echo ... main.obj
-	@echo ... main.i
-	@echo ... main.s
+	@echo ... SammyShuck_FinalProject_WIP.obj
+	@echo ... SammyShuck_FinalProject_WIP.i
+	@echo ... SammyShuck_FinalProject_WIP.s
 .PHONY : help
 
 
