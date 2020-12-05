@@ -57,6 +57,7 @@ include CMakeFiles/Tutorial6.dir/progress.make
 include CMakeFiles/Tutorial6.dir/flags.make
 
 CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj: CMakeFiles/Tutorial6.dir/flags.make
+CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj: CMakeFiles/Tutorial6.dir/includes_CXX.rsp
 CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj: ../Tutorial6-1.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\Tutorial6\cmake-build-debug\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj"
 	C:\TDM-GCC-64\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Tutorial6.dir\Tutorial6-1.cpp.obj -c "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\Tutorial6\Tutorial6-1.cpp"
@@ -78,6 +79,7 @@ Tutorial6_EXTERNAL_OBJECTS =
 
 Tutorial6.exe: CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj
 Tutorial6.exe: CMakeFiles/Tutorial6.dir/build.make
+Tutorial6.exe: C:/TDM-GCC-64/lib/libsoil2-debug.a
 Tutorial6.exe: CMakeFiles/Tutorial6.dir/linklibs.rsp
 Tutorial6.exe: CMakeFiles/Tutorial6.dir/objects1.rsp
 Tutorial6.exe: CMakeFiles/Tutorial6.dir/link.txt
