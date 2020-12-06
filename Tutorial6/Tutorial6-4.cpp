@@ -6,7 +6,7 @@
 * Course: CS-330-J2956 Comp Graphic and Visualization 20EW2
 * Date: 12/6/2020
 * Version: 1.0
-* Copyright: Copyright © 2017 SNHU COCE
+* Copyright: Copyright ï¿½ 2017 SNHU COCE
 */
 
 // header inclusions
@@ -103,29 +103,32 @@ const GLchar * cubeFragmentShaderSource = GLSL(330,
 
 	   void main() {
 
-		   /* Calculate Ambient Lighting */
-		   float ambientStrength = 0.1f;
-		   vec3 ambient = ambientStrength * lightColor; // Generate ambient light color
+           /* Calculate Ambient Lighting */
+           float ambientStrength = 0.1f;
+           vec3 ambient = ambientStrength * lightColor; // Generate ambient light color
 
-		   /* Calculate Diffuse Lighting */
-		   vec3 norm = normalize(Normal); // Normalize vectors to 1 unit
-		   vec3 lightDirection = normalize(lightPos - FragmentPos); // Calculate distance (light direction) between light source and fragments/pixels on
-		   float impact = max(dot(norm, lightDirection), 0.0); // Calculate diffuse impact by generating dot product of normal and light
-		   vec3 diffuse = impact * lightColor; // Generate diffuse light color
+           /* Calculate Diffuse Lighting */
+           vec3 norm = normalize(Normal); // Normalize vectors to 1 unit
+           vec3 lightDirection = normalize(lightPos -
+                                           FragmentPos); // Calculate distance (light direction) between light source and fragments/pixels on
+           float impact = max(dot(norm, lightDirection),
+                              0.0); // Calculate diffuse impact by generating dot product of normal and light
+           vec3 diffuse = impact * lightColor; // Generate diffuse light color
 
-		   /* Calculate Specular Lighting */
-		   float specularIntensity = 1.8f;
-		   float highlightSize = 16.0f;
-		   vec3 viewDir = normalize(viewPosition - FragmentPos); // Calculate view direction
-		   vec3 reflectDir = reflect(-lightDirection, norm); // Calculate reflection vector
-			   // Calculate specular component
-			   float specularComponent = pow(max(dot(viewDir, reflectDir), 0.0), highlightSize);
-		   vec3 specular = specularIntensity * specularComponent * lightColor;
+           /* Calculate Specular Lighting */
+           float specularIntensity = 1.8f;
+           float highlightSize = 16.0f;
+           vec3 viewDir = normalize(viewPosition - FragmentPos); // Calculate view direction
+           vec3 reflectDir = reflect(-lightDirection, norm); // Calculate reflection vector
+           // Calculate specular component
+           float specularComponent = pow(max(dot(viewDir, reflectDir), 0.0), highlightSize);
+           vec3 specular = specularIntensity * specularComponent * lightColor;
 
-		   /* Calculate phong result */
-		   vec3 phong = (ambient + diffuse + specular) * objectColor;
+           /* Calculate phong result */
+           vec3 phong = (ambient + diffuse + specular) * objectColor;
 
-		   cubeColor = vec4(phong, 1.0f); // Send lighting results to GPU
+           cubeColor = vec4(phong, 1.0f); // Send lighting results to GPU
+       }
 );
 
 /* Light Vertex Shader source code */
