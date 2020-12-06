@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj"
+  "CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.obj"
   "Tutorial6.exe"
   "Tutorial6.exe.manifest"
   "Tutorial6.pdb"

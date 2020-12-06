@@ -122,32 +122,32 @@ Tutorial6/fast:
 	$(MAKE) -f CMakeFiles\Tutorial6.dir\build.make CMakeFiles/Tutorial6.dir/build
 .PHONY : Tutorial6/fast
 
-Tutorial6-1.obj: Tutorial6-1.cpp.obj
+Tutorial6-2.obj: Tutorial6-2.cpp.obj
 
-.PHONY : Tutorial6-1.obj
+.PHONY : Tutorial6-2.obj
 
 # target to build an object file
-Tutorial6-1.cpp.obj:
-	$(MAKE) -f CMakeFiles\Tutorial6.dir\build.make CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj
-.PHONY : Tutorial6-1.cpp.obj
+Tutorial6-2.cpp.obj:
+	$(MAKE) -f CMakeFiles\Tutorial6.dir\build.make CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.obj
+.PHONY : Tutorial6-2.cpp.obj
 
-Tutorial6-1.i: Tutorial6-1.cpp.i
+Tutorial6-2.i: Tutorial6-2.cpp.i
 
-.PHONY : Tutorial6-1.i
+.PHONY : Tutorial6-2.i
 
 # target to preprocess a source file
-Tutorial6-1.cpp.i:
-	$(MAKE) -f CMakeFiles\Tutorial6.dir\build.make CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.i
-.PHONY : Tutorial6-1.cpp.i
+Tutorial6-2.cpp.i:
+	$(MAKE) -f CMakeFiles\Tutorial6.dir\build.make CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.i
+.PHONY : Tutorial6-2.cpp.i
 
-Tutorial6-1.s: Tutorial6-1.cpp.s
+Tutorial6-2.s: Tutorial6-2.cpp.s
 
-.PHONY : Tutorial6-1.s
+.PHONY : Tutorial6-2.s
 
 # target to generate assembly for a file
-Tutorial6-1.cpp.s:
-	$(MAKE) -f CMakeFiles\Tutorial6.dir\build.make CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.s
-.PHONY : Tutorial6-1.cpp.s
+Tutorial6-2.cpp.s:
+	$(MAKE) -f CMakeFiles\Tutorial6.dir\build.make CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.s
+.PHONY : Tutorial6-2.cpp.s
 
 # Help Target
 help:
@@ -158,9 +158,9 @@ help:
 	@echo ... Tutorial6
 	@echo ... edit_cache
 	@echo ... rebuild_cache
-	@echo ... Tutorial6-1.obj
-	@echo ... Tutorial6-1.i
-	@echo ... Tutorial6-1.s
+	@echo ... Tutorial6-2.obj
+	@echo ... Tutorial6-2.i
+	@echo ... Tutorial6-2.s
 .PHONY : help
 
 

@@ -6,3 +6,21 @@
 
 #IncludeRegexTransform: 
 
+C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/Tutorial6/SOIL2/SOIL2.h
+
+C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/Tutorial6/Tutorial6-2.cpp
+iostream
+-
+GL/glew.h
+-
+GL/freeglut.h
+-
+SOIL2/SOIL2.h
+C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/Tutorial6/SOIL2/SOIL2.h
+glm/glm.hpp
+-
+glm/gtc/matrix_transform.hpp
+-
+glm/gtc/type_ptr.hpp
+-
+

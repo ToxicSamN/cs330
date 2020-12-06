@@ -56,30 +56,28 @@ include CMakeFiles/Tutorial6.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/Tutorial6.dir/flags.make
 
-CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj: CMakeFiles/Tutorial6.dir/flags.make
-CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj: CMakeFiles/Tutorial6.dir/includes_CXX.rsp
-CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj: ../Tutorial6-1.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\Tutorial6\cmake-build-debug\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj"
-	C:\TDM-GCC-64\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Tutorial6.dir\Tutorial6-1.cpp.obj -c "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\Tutorial6\Tutorial6-1.cpp"
+CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.obj: CMakeFiles/Tutorial6.dir/flags.make
+CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.obj: ../Tutorial6-2.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\Tutorial6\cmake-build-debug\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.obj"
+	C:\TDM-GCC-64\bin\g++.exe  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles\Tutorial6.dir\Tutorial6-2.cpp.obj -c "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\Tutorial6\Tutorial6-2.cpp"
 
-CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.i"
-	C:\TDM-GCC-64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\Tutorial6\Tutorial6-1.cpp" > CMakeFiles\Tutorial6.dir\Tutorial6-1.cpp.i
+CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.i"
+	C:\TDM-GCC-64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\Tutorial6\Tutorial6-2.cpp" > CMakeFiles\Tutorial6.dir\Tutorial6-2.cpp.i
 
-CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.s"
-	C:\TDM-GCC-64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\Tutorial6\Tutorial6-1.cpp" -o CMakeFiles\Tutorial6.dir\Tutorial6-1.cpp.s
+CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.s"
+	C:\TDM-GCC-64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\Tutorial6\Tutorial6-2.cpp" -o CMakeFiles\Tutorial6.dir\Tutorial6-2.cpp.s
 
 # Object files for target Tutorial6
 Tutorial6_OBJECTS = \
-"CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj"
+"CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.obj"
 
 # External object files for target Tutorial6
 Tutorial6_EXTERNAL_OBJECTS =
 
-Tutorial6.exe: CMakeFiles/Tutorial6.dir/Tutorial6-1.cpp.obj
+Tutorial6.exe: CMakeFiles/Tutorial6.dir/Tutorial6-2.cpp.obj
 Tutorial6.exe: CMakeFiles/Tutorial6.dir/build.make
-Tutorial6.exe: C:/TDM-GCC-64/lib/libsoil2-debug.a
 Tutorial6.exe: CMakeFiles/Tutorial6.dir/linklibs.rsp
 Tutorial6.exe: CMakeFiles/Tutorial6.dir/objects1.rsp
 Tutorial6.exe: CMakeFiles/Tutorial6.dir/link.txt
