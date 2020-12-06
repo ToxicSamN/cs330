@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/TDM-GCC-64/x86_64-w64-mingw32/lib/SOIL2/SOIL2.h
+
+C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/SammyShuck__wk6_6-1PracticeActivity7/SammyShuck_wk6_PA7.cpp
+iostream
+-
+GL/glew.h
+-
+GL/freeglut.h
+-
+glm/glm.hpp
+-
+glm/gtc/matrix_transform.hpp
+-
+glm/gtc/type_ptr.hpp
+-
+SOIL2/SOIL2.h
+C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/SammyShuck__wk6_6-1PracticeActivity7/SOIL2/SOIL2.h
+
