@@ -19,44 +19,37 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// SOIL image loader inclusion
+#include "SOIL2/SOIL2.h"
+
 using namespace std;
 
 #define WINDOW_TITLE "Modern OpenGL"
 
-/*Shader program macro*/
-#ifndef GLSL
-#define GLSL(Version, Source) "#version " #Version "\n" #Source
-#endif
-
 /*function prototypes*/
 void UResizeWindow(int, int);
 void URenderGraphics(void);
-void UCreateShader(void);
-void UCreateBuffers(void);
+void UGenerateTexture();
 void UInitialize(int, char*[]);
 void UInitWindow(int, char*[]);
 void UCreateVBO(void);
 void DestroyVBO(void);
-void UCreateShaders(void);
-void DestroyShaders(void);
 void Cleanup(void);
 void KeyboardFunction(unsigned char, int, int);
 void UKeyRelease(unsigned char key, int x, int y);
 void MouseClick(int btn, int state, int x, int y);
 void MouseMove(int x, int y);
 void MousePressMove(int x, int y);
+void UMouseScroll(int wheel, int direction, int x, int y);
 void IdleFunction(void);
 
 /* Global variable declarations */
 GLuint
         WindowWidth = 800,
         WindowHeight = 600,
-        VertexShaderId, // vertex shader
-FragmentShaderId, // fragment shader
-ProgramId, // shader program
-VaoId,
-        VboId,
-        IndexBufferId,
+        ProgramId, // shader program
+VAO,
+        VBO,
         modKey,
         texture;
 
@@ -70,15 +63,27 @@ lastMouseX = 400,
         yaw = 0.0f,
         pitch = 0.0f,
         sensitivity = 0.5f,
-        scaleX = 1.0f,
-        scaleY = 1.0f,
-        scaleZ = 1.0f;
+        scaleX = 6.0f,
+        scaleY = 6.0f,
+        scaleZ = 6.0f;
 
 glm::vec3
         front,
         cameraForwardZ,
-        cameraPos = glm::vec3(0.0f,0.0f,0.0f),
+        cameraPos = glm::vec3(0.5f,0.0f,0.0f),
         cameraUpY = glm::vec3(0.0f,1.0f,0.0f);
+
+
+// key and fill light colors
+glm::vec3 keyLightColor(1.0f, 1.0f, 1.0f); // green light
+glm::vec3 fillLightColor(0.999, 0.999, 0.999); // white light
+
+// Light position
+glm::vec3 keyLightPos(-5.0f, 15.0f, -10.0f);
+glm::vec3 fillLightPos(5.0f, 0.0f, 10.0f);
+
+
+glm::mat4 projection = glm::perspective(45.0f, (GLfloat)WindowWidth / (GLfloat)WindowHeight, 0.1f, 100.0f);
 
 GLchar
         currKey; // store current key pressed
@@ -89,246 +94,216 @@ zoom, // flag to tell the program to zoom
 orbit; // flag to tell the program to orbit
 
 
-/*Vertex Shader Program Source Code*/
-const GLchar* vertexShaderSource = GLSL(330,
-                                        layout(location=0) in vec3 vertex_Position; // Receive vertex coordinates from attribute 0. i.e. 2 floats per vertex
-
-                                                /*Get the vertex colors from the Vertex Buffer object*/
-                                                layout(location=1) in vec3 colorFromVBO; // for attribute 1 expect vec(4) floats passed into the vertex shader
-
-                                                out vec3 colorFromVShader; // declare a vec 4 variable that will referencethe vertex colors passed into the Vertex shader from the buffer
-
-                                                // Global variable for the transform matrices
-                                                uniform mat4 model;
-                                                uniform mat4 view;
-                                                uniform mat4 projection;
-
-                                                void main(){
-                                                    gl_Position = projection * view * model * vec4(vertex_Position, 1.0f); // Send the vertex positions to gl_Position vec 4
-                                                    colorFromVShader = colorFromVBO; // references vertex colors sent from the buffer
-                                                }
-                                   );
-
-/*  Fragment Shader Program Source Code*/
-const GLchar* fragmentShaderSource = GLSL(330,
-                                          in vec3 colorFromVShader; // Vertex colors from the vertex shader
-
-                                                  out vec4 gpuColor; // vec 4 variable that will reference the vertex colors passed into the fragment shader from the vertex shader
-
-                                                  void main(){
-                                                      gpuColor = vec4(colorFromVShader, 1.0f); // Send the vertex colors to the GPU
-                                                  }
-                                     );
-/*
-const int
-    numObjects = 9,
-    numTrianglesPerObject = 8;
-// table definition for each front and back of the object.
-// since this is a cube like object (6 sides) then the same
-// pattern can be applied to each piece of the table
-// v0, v1, v3 front triangle 1
-// v2, v3, v0 front triangle 2
-// v4, v5, v7 back triangle 1
-// v6, v7, v4 back triangle 2
-// v4, v5, v1 left triangle 1
-// v0, v1, v4 left triangle 2
-// v2, v3, v7 right triangle 1
-// v6, v7, v2 right triangle 2
-// v4, v0, v2 top triangle 1
-// v6, v2, v4 top triangle 2
-// v5, v1, v3 bottom triangle 1
-// v7, v3, v5 bottom triangle 2
-GLfloat tableDefinitions[numObjects][numTrianglesPerObject][6] = {
-        // table top
-        {
-                {-0.500f,-0.250f, 0.000f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.500f,-0.250f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                { 0.500f,-0.250f, 0.000f,   1.0f, 1.0f, 1.0f}, // v
-                { 0.500f,-0.250f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.500f, 0.250f, 0.000f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.500f,-0.250f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                { 0.500f, 0.250f, 0.000f,   1.0f, 1.0f, 1.0f}, // v
-                { 0.500f, 0.250f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-        },
-        // table front border
-        {
-                {-0.474f,-0.224f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.474f,-0.224f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-                { 0.474f,-0.224f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                { 0.474f,-0.224f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.474f,-0.211f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.474f,-0.211f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-                { 0.474f,-0.211f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                { 0.474f,-0.211f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-
-        },
-        // table back border
-        {
-                {-0.474f,0.211f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.474f,0.211f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-                { 0.474f,0.211f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                { 0.474f,0.211f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.474f,0.224f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.474f,0.224f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-                { 0.474f,0.224f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                { 0.474f,0.224f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-        },
-        // table left border
-        {
-                {-0.474f,-0.211f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.474f,-0.211f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.461f,-0.211f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.461f,-0.211f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.474f, 0.211f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.474f, 0.211f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.461f, 0.211f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.461f, 0.211f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-        },
-        // table right border
-        {
-                {0.461f,-0.211f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {0.461f,-0.211f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-                {0.474f,-0.211f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {0.474f,-0.211f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-                {0.461f, 0.211f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {0.461f, 0.211f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-                {0.474f, 0.211f,-0.013f,   1.0f, 1.0f, 1.0f}, // v
-                {0.474f, 0.211f,-0.052f,   1.0f, 1.0f, 1.0f}, // v
-
-        },
-        // table front left leg
-        {
-                {-0.4285f,-0.2110f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4285f,-0.2110f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4610f,-0.2110f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4610f,-0.2110f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4285f,-0.1785f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4285f,-0.1785f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4610f,-0.1785f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4610f,-0.1785f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-        },
-        // table front right leg
-        {
-                {0.4285f,-0.2110f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4285f,-0.2110f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4610f,-0.2110f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4610f,-0.2110f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4285f,-0.1785f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4285f,-0.1785f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4610f,-0.1785f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4610f,-0.1785f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-
-        },
-        // table back left leg
-        {
-                {-0.4610f,0.1785f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4610f,0.1785f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4285f,0.1785f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4285f,0.1785f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4610f,0.2110f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4610f,0.2110f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4285f,0.2110f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {-0.4285f,0.2110f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-        },
-        // table back right leg
-        {
-                {0.4285f,0.1785f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4285f,0.1785f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4610f,0.1785f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4610f,0.1785f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4285f,0.2110f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4285f,0.2110f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4610f,0.2110f,-0.0130f,   1.0f, 1.0f, 1.0f}, // v
-                {0.4610f,0.2110f,-0.5000f,   1.0f, 1.0f, 1.0f}, // v
-        },
-};
-*/
-
 
 /*
- * VertexMeta class is a way of defining the coordinate plane and
- * providing the necessary strides and offsets for glVertexAttribPointer
- * values. Based on the dimensions provides (2 or 3) will determine the
- * stride and offset values
+ * Shader object contains the shader definitions and allows for a more condensed use
+ * of the compiling of the vertex and fragment shaders
  */
-class VertexMeta {
+class Shader
+{
 private:
-    GLuint numDimensions;
+    GLuint vertexShaderId, fragmentShaderId;
 
-    // vertex num floats is r, g, b, a = 4
-    const size_t VertexColorOffset = 3;
+    /* Shader program macro */
+#ifndef GLSL
+#define GLSL(Version, Source) "#version " #Version "\n" #Source
+#endif
+
+    /* Light Vertex Shader source code */
+    const GLchar *vertexShaderSource = GLSL(330,
+                                            layout(location = 0) in vec3 position; // VAP position 0 for vertex position data
+                                                    layout(location = 1) in vec3 normal; // VAP position 1 for normals
+                                                    layout(location = 2) in vec2 textureCoordinate;
+
+                                                    out vec3 Normal; // for outgoing normals to fragment shader
+                                                    out vec3 FragmentPos; // for outgoing color / pixels to fragment shader
+                                                    out vec2 mobileTextureCoordinate; // coordinates for texture
+
+                                                    // uniform / global variables for the transform matrices
+                                                    uniform mat4 model;
+                                                    uniform mat4 view;
+                                                    uniform mat4 projection;
+
+                                                    void main() {
+                                                        gl_Position = projection * view * model * vec4(position, 1.0f);// Transforms vertices into clip coordinates
+                                                        Normal = mat3(transpose(inverse(model))) * normal; // get normal vectors in world space only and exclude normal translation properties
+                                                        FragmentPos = vec3(model * vec4(position, 1.0f)); // Gets fragment / pixel position in world space only (exclude view and projection)
+                                                        mobileTextureCoordinate = vec2(textureCoordinate.x, 1.0f - textureCoordinate.y); // flips the texture horizontally
+                                                    }
+                                       );
+
+    /* Light Fragment Shader source code */
+    const GLchar *fragmentShaderSource = GLSL(330,
+                                              in vec3 Normal; //For incoming normals
+                                                      in vec3 FragmentPos; //for incoming fragment position
+                                                      in vec2 mobileTextureCoordinate;
+
+                                                      out vec4 gpuOut; //for outgoing light color to the GPU
+
+                                                      //Uniform / Global variables for object color, light color, light position and camera/view position
+                                                      uniform vec3 keyLightColor;
+                                                      uniform vec3 fillLightColor;
+                                                      uniform vec3 keyLightPos;
+                                                      uniform vec3 fillLightPos;
+                                                      uniform vec3 viewPosition;
+                                                      uniform sampler2D uTexture; //Useful when working with multiple textures
+
+                                                      void main() {
+
+                                                          /* Calculate Ambient Lighting */
+                                                          float ambientStrength = 0.1f;
+                                                          vec3 keyAmbient = ambientStrength * keyLightColor; //Generate ambient light color
+                                                          vec3 fillAmbient = ambientStrength * fillLightColor;//Generate second ambient light color
+
+                                                          /* Calculate Diffuse Lighting */
+                                                          vec3 norm = normalize(Normal); //Normalize vectors to 1 unit
+                                                          vec3 keyLightDirection = normalize(keyLightPos - FragmentPos); //Calculate distance (light direction) between light source and fragments/pixels on
+                                                          vec3 fillLightDirection = normalize(fillLightPos - FragmentPos); //Calculate distance (light direction) between light source and fragments/pixels on
+                                                          float keyImpact = max(dot(norm, keyLightDirection), 0.0); //Calculate diffuse impact by generating dot product of normal and light
+                                                          float fillImpact = max(dot(norm, fillLightDirection), 0.0); //Calculate diffuse impact by generating dot product of normal and light
+                                                          vec3 keyDiffuse = keyImpact * keyLightColor; //Generate diffuse light color
+                                                          vec3 fillDiffuse = fillImpact * fillLightColor; //Generate diffuse light color
+
+                                                          /* Calculate Specular Lighting */
+                                                          float highlighSize = 0.5f;
+                                                          float keySpecularIntensity = 0.5f;
+                                                          float fillSpecularIntensity = 1.0f;
+
+                                                          vec3 viewDir = normalize(viewPosition - FragmentPos); //Calculate view direction
+                                                          vec3 keyReflectDir = reflect(-keyLightDirection, norm); //Calculate reflection vector
+                                                          vec3 fillReflectDir = reflect(-fillLightDirection, norm); //Calculate reflection vector
+                                                          // Calculate specular component
+                                                          float keySpecularComponent = pow(max(dot(viewDir, keyReflectDir), 0.0), highlighSize);
+                                                          float fillSpecularComponent = pow(max(dot(viewDir, fillReflectDir), 0.0), highlighSize);
+                                                          vec3 keySpecular = keySpecularIntensity * keySpecularComponent * keyLightColor;
+                                                          vec3 fillSpecular = fillSpecularIntensity * keySpecularComponent * keyLightColor;
+
+                                                          /* Calculate phong result */
+                                                          vec3 keyPhong = (keyAmbient + keyDiffuse + keySpecular) * vec3(texture(uTexture, mobileTextureCoordinate));
+                                                          vec3 fillPhong = (fillAmbient + fillDiffuse + fillSpecular) * vec3(texture(uTexture, mobileTextureCoordinate));
+
+                                                          gpuOut = vec4(keyPhong + fillPhong, 1.0f); //Send lighting results to GPU
+                                                      }
+                                         );
+    /* Vertex Shader source code */
+    const GLchar * textureVertexShaderSource = GLSL(330,
+                                                    layout (location = 0) in vec3 position; // vertex data from Vertex Attrib Pointer 0
+                                                            layout (location = 1) in vec2 textureUV;
+
+                                                            out vec2 mobileTextureCoordinate;
+
+                                                            // Global variables for the transform matrices
+                                                            uniform mat4 model;
+                                                            uniform mat4 view;
+                                                            uniform mat4 projection;
+
+                                                            void main(){
+                                                                gl_Position = projection * view * model * vec4(position, 1.0f); // transforms vertices to clip coordinates
+                                                                mobileTextureCoordinate = vec2(textureUV.x, 1-textureUV.y); // flips the texture horizontally
+                                                            }
+                                               );
+
+    /* fragment shader source code */
+    const GLchar * textureFragmentShaderSource = GLSL(330,
+                                                      in vec2 mobileTextureCoordinate;
+
+                                                              out vec4 gpuTexture; // variable to pass color data to the GPU
+
+                                                              uniform sampler2D uTexture; //Useful when working with multiple textures
+
+                                                              void main(){
+                                                                  gpuTexture = texture(uTexture, mobileTextureCoordinate);
+                                                              }
+                                                 );
+
 
 public:
-    VertexMeta(); // default constructor
-    explicit VertexMeta(GLuint d); // constructor setting number of dimensions
-    void setDimension(GLuint d);
-    GLuint getDimension();
-    size_t getColorStride();
-    size_t getColorOffset();
-    size_t getVertexStride();
-    GLvoid* getRGBAOffset();
-};
-/**
- * Default Constructor
- */
-VertexMeta::VertexMeta() {
-    this->numDimensions = 3; // default to 3 dimensions
-}
-/**
- * Constructor with dimension
- */
-VertexMeta::VertexMeta(GLuint d) {
-    this->numDimensions = d;
-}
-/**
- * Setter for setting the number of dimensions to calculate
- * @param d int : defines the number of dimension
- */
-void VertexMeta::setDimension(GLuint d){
-    this->numDimensions = d;
-}
-/**
- * Getter for returning the number of dimensions to calculate
- * @return int: the number of dimension
- */
-GLuint VertexMeta::getDimension(){
-    return this->numDimensions;
-}
-/**
- * Returns the size_t value for color stride based on the dimension set i.e. 2D vs 3D
- * 2D color stride is {r, g, b, a, x, y }
- * 3D color stride is {r, g, b, a, x, y, z }
- * @return size_t value of dimensional color stride
- */
-size_t VertexMeta::getColorStride() {
-    return sizeof(float) * (this->numDimensions + this->VertexColorOffset);
-}
-/**
- * Returns the size_t value for color offset, this is always 4 = RGBA
- * @return size_t value of number of floats ina color definitions RGBA
- */
-size_t VertexMeta::getColorOffset() {
-    return this->VertexColorOffset;
-}
-/**
- * Returns the size_t value for Vertex stride based on the dimension set i.e. 2D vs 3D
- * 2D vertex stride is {x, y, r, g, b, a }
- * 3D vertex stride is {x, y, z, r, g, b, a }
- * @return size_t value of dimensional vertex stride
- */
-size_t VertexMeta::getVertexStride() {
-    return sizeof(float) * (this->numDimensions + this->VertexColorOffset);
-}
-/**
- * Returns the RGBA offset based on the dimension set i.e. 2D vs 3D
- * num floats until the beginning of each color in 2D vertices = 2 {x, y}
- * num floats until the beginning of each color in 3D vertices = 3 {x, y, z}
- * @return const char* value of dimensional RGB offset
- */
-GLvoid* VertexMeta::getRGBAOffset() {
-    return (GLvoid*)(sizeof(GLfloat) * this->numDimensions);
-}
+    GLuint Program;
 
+    /* Constructor for generating the shader */
+    Shader(){
+        this->Program  = 0;
+        this->vertexShaderId = 0;
+        this->fragmentShaderId = 0;
+    }
+
+    void Compile()
+    {
+        // Compile the shaders
+        // Vertex shader
+        this->vertexShaderId = glCreateShader(GL_VERTEX_SHADER); // creates the vertex shader
+        glShaderSource(this->vertexShaderId, 1, &this->vertexShaderSource, NULL); // Attaches the vertex shader to the source code
+        glCompileShader(this->vertexShaderId); // compiles the vertex shader
+
+        // Fragment shader
+        this->fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER); // Creates the fragment shader
+        glShaderSource(this->fragmentShaderId, 1, &this->fragmentShaderSource, NULL); // Attaches the fragment shader to the source code
+        glCompileShader(this->fragmentShaderId); // compiles the fragment shader
+
+        // Shader Program
+        this->Program = glCreateProgram(); // Creates the shader program and returns an id
+        glAttachShader(this->Program, this->vertexShaderId); // Attach vertex shader to the shader program
+        glAttachShader(this->Program, this->fragmentShaderId); // Attach fragment shader to the shader program
+        glLinkProgram(this->Program); // link vertex and fragment shader to shader program
+
+        // delete the vertex and fragment shaders once linked
+        glDeleteShader(this->vertexShaderId);
+        glDeleteShader(this->fragmentShaderId);
+    }
+    void CompileTextureOnly()
+    {
+        // Compile the shaders
+        // Vertex shader
+        this->vertexShaderId = glCreateShader(GL_VERTEX_SHADER); // creates the vertex shader
+        glShaderSource(this->vertexShaderId, 1, &this->textureVertexShaderSource, NULL); // Attaches the vertex shader to the source code
+        glCompileShader(this->vertexShaderId); // compiles the vertex shader
+
+        // Fragment shader
+        this->fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER); // Creates the fragment shader
+        glShaderSource(this->fragmentShaderId, 1, &this->textureFragmentShaderSource, NULL); // Attaches the fragment shader to the source code
+        glCompileShader(this->fragmentShaderId); // compiles the fragment shader
+
+        // Shader Program
+        this->Program = glCreateProgram(); // Creates the shader program and returns an id
+        glAttachShader(this->Program, this->vertexShaderId); // Attach vertex shader to the shader program
+        glAttachShader(this->Program, this->fragmentShaderId); // Attach fragment shader to the shader program
+        glLinkProgram(this->Program); // link vertex and fragment shader to shader program
+
+        // delete the vertex and fragment shaders once linked
+        glDeleteShader(this->vertexShaderId);
+        glDeleteShader(this->fragmentShaderId);
+    }
+
+    // Use the current shader program
+    void Use() {
+
+        glUseProgram(this->Program);
+
+    }
+    void Cleanup(){
+        GLenum ErrorCheckValue = glGetError();
+
+        glUseProgram(0);
+
+        glDetachShader(this->Program, this->vertexShaderId);
+        glDetachShader(this->Program, this->fragmentShaderId);
+
+        glDeleteProgram(this->Program);
+
+        ErrorCheckValue = glGetError();
+        if (ErrorCheckValue != GL_NO_ERROR)
+        {
+            fprintf(
+                    stderr,
+                    "ERROR: Could not destroy the shaders: %s \n",
+                    gluErrorString(ErrorCheckValue)
+            );
+        }
+    }
+
+};
+
+Shader shader = Shader();
 
 /* Main Program */
 int main(int argc, char* argv[]) {
@@ -340,7 +315,7 @@ int main(int argc, char* argv[]) {
 
 // properly cleanup at the end
 void Cleanup(){
-    DestroyShaders();
+    shader.Cleanup();
     DestroyVBO();
 }
 
@@ -363,8 +338,12 @@ void UInitialize(int argc, char* argv[]){
     // Displays GPU OpenGL version
     fprintf(stderr, "INFO: OpenGL Version: %s\n", glGetString(GL_VERSION));
 
-    UCreateShader(); // Calls the function to create the shader program
+
     UCreateVBO(); // Calls the function to create the vertex buffer object
+    UGenerateTexture();
+
+    shader.Compile();
+    shader.Use();
 
     // Sets the background color of the window to black, Optional
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -391,6 +370,7 @@ void UInitWindow(int argc, char* argv[]){
     glutMouseFunc(MouseClick);
     glutPassiveMotionFunc(MouseMove);
     glutMotionFunc(MousePressMove);
+    glutMouseWheelFunc(UMouseScroll);
     glutIdleFunc(IdleFunction);
     glutCloseFunc(Cleanup); // properly cleans up system resources
 }
@@ -406,10 +386,15 @@ void UResizeWindow(int w, int h){
 void URenderGraphics(void){
 
     glEnable(GL_DEPTH_TEST); // Enable z-depth
+    glDepthFunc(GL_LESS);
+    // Enable alpha support to make the code more dynamic
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glBindVertexArray(VaoId);
+
+    glBindVertexArray(VAO);
 
     cameraForwardZ = front;
 
@@ -417,522 +402,556 @@ void URenderGraphics(void){
     glm::mat4  model;
     model = glm::translate(model, glm::vec3(0.0f,0.0f,0.0f));
     //Rotates Shape 45 degrees on the z axis
-    model = glm::rotate(model, 45.0f, glm::vec3(0.0f,1.0f,0.0f));
+    model = glm::rotate(model, 90.0f, glm::vec3(0.5f,0.0f,0.0f));
     // Scales the shape down by half it's original size in xyz
     model = glm::scale(model, glm::vec3(scaleX, scaleY, scaleZ));
 
     // Transforms the camera
     glm::mat4 view;
     view = glm::lookAt(cameraForwardZ, cameraPos, cameraUpY);
-
-    // Creates a perspective projection
-    glm::mat4 projection;
-    projection = glm::perspective(45.0f, (GLfloat)WindowWidth / (GLfloat)WindowHeight, 0.1f, 100.0f);
+    view = glm::rotate(view, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     // Retrieves and passes transform matrices to the shader program
-    GLint modelLoc = glGetUniformLocation(ProgramId, "model");
-    GLint viewLoc = glGetUniformLocation(ProgramId, "view");
-    GLint projLoc = glGetUniformLocation(ProgramId, "projection");
+    GLint modelLoc = glGetUniformLocation(shader.Program, "model");
+    GLint viewLoc = glGetUniformLocation(shader.Program, "view");
+    GLint projLoc = glGetUniformLocation(shader.Program, "projection");
+    GLint txLoc = glGetUniformLocation(shader.Program, "uTexture");
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    glUniform1i(txLoc, 0);
+
+    /* Pass color, light position, and camera position to the shader program
+    *
+    * uniform vec3 keyLightColor
+    * uniform vec3 fillLightColor
+    * uniform vec3 keyLightPos
+    * uniform vec3 fillLightPos
+    * uniform vec3 viewPosition
+    */
+    GLint keyLightColorLoc = glGetUniformLocation(shader.Program, "keyLightColor");
+    GLint fillLightColorLoc = glGetUniformLocation(shader.Program, "fillLightColor");
+    GLint keyLightPosLoc = glGetUniformLocation(shader.Program, "keyLightPos");
+    GLint fillLightPosLoc = glGetUniformLocation(shader.Program, "fillLightPos");
+    GLint viewPositionLoc = glGetUniformLocation(shader.Program, "viewPosition");
+
+    // pass color, light, and camera data to the cube shader programs corresponding uniforms
+    glUniform3f(keyLightColorLoc, keyLightColor.r, keyLightColor.g, keyLightColor.b);
+    glUniform3f(fillLightColorLoc, fillLightColor.r, fillLightColor.g, fillLightColor.b);
+    glUniform3f(keyLightPosLoc, keyLightPos.x, keyLightPos.y, keyLightPos.z);
+    glUniform3f(fillLightPosLoc, fillLightPos.x, fillLightPos.y, fillLightPos.z);
+    glUniform3f(viewPositionLoc, cameraPos.x, cameraPos.y, cameraPos.z);
 
     glutPostRedisplay();
 
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
     /* Creates the triangle */
     // Draw the triangle using the indices
-    glDrawArrays(GL_TRIANGLES, 0, 1000);
+    glDrawArrays(GL_TRIANGLES, 0, 500);
 
     glBindVertexArray(0); // deactivates the vertex array object
 
     glutSwapBuffers(); // flips the back buffer with the front buffer every frame
 }
 
-/* Creates the shader program */
-void UCreateShader(void){
-
-    // Vertex Shader
-    VertexShaderId = glCreateShader(GL_VERTEX_SHADER); // Create a Vertex Shader Object
-    glShaderSource(VertexShaderId, 1, &vertexShaderSource, NULL); // retrieves the vertex shader source code
-    glCompileShader(VertexShaderId); // Compile the vertex shader
-
-    // Fragrment Shader
-    FragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER); // Create a vertex shader object
-    glShaderSource(FragmentShaderId, 1, &fragmentShaderSource, NULL); // retrieves the fragment shader source code
-    glCompileShader(FragmentShaderId); // Compile the fragment shader
-
-    // Create a shader program object
-    ProgramId = glCreateProgram();
-
-    // Attaches the vertex and fragment shader to the shader program
-    glAttachShader(ProgramId, VertexShaderId);
-    glAttachShader(ProgramId, FragmentShaderId);
-
-    glLinkProgram(ProgramId); // Links the shader program
-    glUseProgram(ProgramId); // Uses the shader program
-
-    // delete the vertex and fragment shaders once linked
-    glDeleteShader(VertexShaderId);
-    glDeleteShader(FragmentShaderId);
-}
-// destroy the shaders properly
-void DestroyShaders(void){
-    GLenum ErrorCheckValue = glGetError();
-
-    glUseProgram(0);
-
-    glDetachShader(ProgramId, VertexShaderId);
-    glDetachShader(ProgramId, FragmentShaderId);
-
-    glDeleteProgram(ProgramId);
-
-    ErrorCheckValue = glGetError();
-    if (ErrorCheckValue != GL_NO_ERROR)
-    {
-        fprintf(
-                stderr,
-                "ERROR: Could not destroy the shaders: %s \n",
-                gluErrorString(ErrorCheckValue)
-        );
-
-        exit(-1);
-    }
-}
 
 /* Creates the buffer and array objects */
 void UCreateVBO(){
-    // define the number of dimension 2D (x, y) coordinates or 3D (x, y, z) coordinates
-    VertexMeta VertexInfo = VertexMeta(3);
 
-    GLfloat a[] = {
+    GLfloat vertices[] = {
+
+            //		x			y			z			normX	normY	normZ		u		v
+
             // table top
-            -0.500f,-0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v0
-            -0.500f,-0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v1
-            0.500f,-0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v3
-            0.500f,-0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v2
-            0.500f,-0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v3
-            -0.500f,-0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v0
+            // front
+            -0.5000f,	-0.2500f,	0.0000f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
+            -0.5000f,	-0.2500f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	0.0f,		// v1
+            0.5000f,	-0.2500f,	0.0130f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            0.5000f,	-0.2500f,	0.0000f,		0.0f,	0.0f,	1.0f,		1.0f,	1.0f,		// v2
+            0.5000f,	-0.2500f,	0.0130f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            -0.5000f,	-0.2500f,	0.0000f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
 
-            -0.500f,0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v4
-            -0.500f,0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v5
-            0.500f, 0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v7
-            0.500f, 0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v6
-            0.500f, 0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v7
-            -0.500f,0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v4
+            // back					0.0f,	0.0f,	-1.0f,
+            -0.5000f,	0.2500f,	0.0000f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
+            -0.5000f,	0.2500f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	0.0f,		// v5
+            0.5000f,	0.2500f,	0.0130f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            0.5000f,	0.2500f,	0.0000f,		0.0f,	0.0f,	-1.0f,		1.0f,	1.0f,		// v6
+            0.5000f,	0.2500f,	0.0130f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            -0.5000f,	0.2500f,	0.0000f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
 
-            -0.500f,0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v4
-            -0.500f,0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v5
-            -0.500f,-0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v1
-            -0.500f,-0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v0
-            -0.500f,-0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v1
-            -0.500f,0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v4
+            // left
+            -0.5000f,	0.2500f,	0.0000f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
+            -0.5000f,	0.2500f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v5
+            -0.5000f,	-0.2500f,	0.0130f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            -0.5000f,	-0.2500f,	0.0000f,		-1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v0
+            -0.5000f,	-0.2500f,	0.0130f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            -0.5000f,	0.2500f,	0.0000f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            0.500f,-0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v2
-            0.500f,-0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v3
-            0.500f, 0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v7
-            0.500f, 0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v6
-            0.500f, 0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v7
-            0.500f,-0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v2
+            // right
+            0.5000f,	-0.2500f,	0.0000f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
+            0.5000f,	-0.2500f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v3
+            0.5000f,	0.2500f,	0.0130f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            0.5000f,	0.2500f,	0.0000f,		1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v6
+            0.5000f,	0.2500f,	0.0130f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            0.5000f,	-0.2500f,	0.0000f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
 
-            -0.500f,0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v4
-            -0.500f,-0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v0
-            0.500f,-0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v2
-            0.500f, 0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v6
-            0.500f,-0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v2
-            -0.500f,0.250f, 0.000f,   1.000f, 0.549f, 0.000f, // v4
+            // top
+            -0.5000f,	0.2500f,	0.0000f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
+            -0.5000f,	-0.2500f,	0.0000f,		0.0f,	1.0f,	0.0f,		0.0f,	0.0f,		// v0
+            0.5000f,	-0.2500f,	0.0000f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            0.5000f,	0.2500f,	0.0000f,		0.0f,	1.0f,	0.0f,		1.0f,	1.0f,		// v6
+            0.5000f,	-0.2500f,	0.0000f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            -0.5000f,	0.2500f,	0.0000f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            -0.500f,0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v5
-            -0.500f,-0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v1
-            0.500f,-0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v3
-            0.500f, 0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v7
-            0.500f,-0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v3
-            -0.500f,0.250f,-0.013f,   1.000f, 0.549f, 0.000f, // v5
-            
-            // table front border
-            -0.474f,-0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
-            -0.474f,-0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            0.474f,-0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            0.474f,-0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            0.474f,-0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            -0.474f,-0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
+            // bottom
+            -0.5000f,	0.2500f,	0.0130f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
+            -0.5000f,	-0.2500f,	0.0130f,		0.0f,	-1.0f,	0.0f,		0.0f,	0.0f,		// v1
+            0.5000f,	-0.2500f,	0.0130f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            0.5000f,	0.2500f,	0.0130f,		0.0f,	-1.0f,	0.0f,		1.0f,	1.0f,		// v7
+            0.5000f,	-0.2500f,	0.0130f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            -0.5000f,	0.2500f,	0.0130f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
 
-            -0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
-            -0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
-            0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v6
-            0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            -0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
+            // front border
+            // front
+            -0.4740f,	-0.2240f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
+            -0.4740f,	-0.2240f,	0.0520f,		0.0f,	0.0f,	1.0f,		0.0f,	0.0f,		// v1
+            0.4740f,	-0.2240f,	0.0520f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            0.4740f,	-0.2240f,	0.0130f,		0.0f,	0.0f,	1.0f,		1.0f,	1.0f,		// v2
+            0.4740f,	-0.2240f,	0.0520f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            -0.4740f,	-0.2240f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
 
-            -0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
-            -0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
-            -0.474f,-0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            -0.474f,-0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
-            -0.474f,-0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            -0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
+            // back					0.0f,	0.0f,	-1.0f,
+            -0.4740f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
+            -0.4740f,	-0.2110f,	0.0520f,		0.0f,	0.0f,	-1.0f,		0.0f,	0.0f,		// v5
+            0.4740f,	-0.2110f,	0.0520f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            0.4740f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		1.0f,	1.0f,		// v6
+            0.4740f,	-0.2110f,	0.0520f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            -0.4740f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
 
-            0.474f,-0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            0.474f,-0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v6
-            0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.474f,-0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
+            // left
+            -0.4740f,	-0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
+            -0.4740f,	-0.2110f,	0.0520f,		-1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v5
+            -0.4740f,	-0.2240f,	0.0520f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            -0.4740f,	-0.2240f,	0.0130f,		-1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v0
+            -0.4740f,	-0.2240f,	0.0520f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            -0.4740f,	-0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            -0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
-            -0.474f,-0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
-            0.474f,-0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v6
-            0.474f,-0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            -0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
+            // right
+            0.4740f,	-0.2240f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
+            0.4740f,	-0.2240f,	0.0520f,		1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v3
+            0.4740f,	-0.2110f,	0.0520f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            0.4740f,	-0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v6
+            0.4740f,	-0.2110f,	0.0520f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            0.4740f,	-0.2240f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
 
-            -0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
-            -0.474f,-0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            0.474f,-0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.474f,-0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            -0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
+            // top
+            -0.4740f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
+            -0.4740f,	-0.2240f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	0.0f,		// v0
+            0.4740f,	-0.2240f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            0.4740f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	1.0f,		// v6
+            0.4740f,	-0.2240f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            -0.4740f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            // table back border
-            -0.474f,0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
-            -0.474f,0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            0.474f,0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            0.474f,0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            0.474f,0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            -0.474f,0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
+            // bottom
+            -0.4740f,	-0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
+            -0.4740f,	-0.2240f,	0.0520f,		0.0f,	-1.0f,	0.0f,		0.0f,	0.0f,		// v1
+            0.4740f,	-0.2240f,	0.0520f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            0.4740f,	-0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		1.0f,	1.0f,		// v7
+            0.4740f,	-0.2240f,	0.0520f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            -0.4740f,	-0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
 
-            -0.474f,0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
-            -0.474f,0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
-            0.474f,0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.474f,0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v6
-            0.474f,0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            -0.474f,0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
+            // back border
+            // front
+            -0.4740f,	0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
+            -0.4740f,	0.2110f,	0.0520f,		0.0f,	0.0f,	1.0f,		0.0f,	0.0f,		// v1
+            0.4740f,	0.2110f,	0.0520f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            0.4740f,	0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		1.0f,	1.0f,		// v2
+            0.4740f,	0.2110f,	0.0520f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            -0.4740f,	0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
 
-            -0.474f,0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
-            -0.474f,0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
-            -0.474f,0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            -0.474f,0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
-            -0.474f,0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            -0.474f,0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
+            // back					0.0f,	0.0f,	-1.0f,
+            -0.4740f,	0.2240f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
+            -0.4740f,	0.2240f,	0.0520f,		0.0f,	0.0f,	-1.0f,		0.0f,	0.0f,		// v5
+            0.4740f,	0.2240f,	0.0520f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            0.4740f,	0.2240f,	0.0130f,		0.0f,	0.0f,	-1.0f,		1.0f,	1.0f,		// v6
+            0.4740f,	0.2240f,	0.0520f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            -0.4740f,	0.2240f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
 
-            0.474f,0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            0.474f,0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            0.474f,0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.474f,0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v6
-            0.474f,0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.474f,0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
+            // left
+            -0.4740f,	0.2240f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
+            -0.4740f,	0.2240f,	0.0520f,		-1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v5
+            -0.4740f,	0.2110f,	0.0520f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            -0.4740f,	0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v0
+            -0.4740f,	0.2110f,	0.0520f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            -0.4740f,	0.2240f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            -0.474f,0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
-            -0.474f,0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
-            0.474f,0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            0.474f,0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v6
-            0.474f,0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            -0.474f,0.224f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
+            // right
+            0.4740f,	0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
+            0.4740f,	0.2110f,	0.0520f,		1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v3
+            0.4740f,	0.2240f,	0.0520f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            0.4740f,	0.2240f,	0.0130f,		1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v6
+            0.4740f,	0.2240f,	0.0520f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            0.4740f,	0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
 
-            -0.474f,0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
-            -0.474f,0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            0.474f,0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            0.474f,0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.474f,0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            -0.474f,0.224f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
+            // top
+            -0.4740f,	0.2240f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
+            -0.4740f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	0.0f,		// v0
+            0.4740f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            0.4740f,	0.2240f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	1.0f,		// v6
+            0.4740f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            -0.4740f,	0.2240f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            // table left border
-            -0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
-            -0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            -0.461f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            -0.461f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            -0.461f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            -0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
+            // bottom
+            -0.4740f,	0.2240f,	0.0520f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
+            -0.4740f,	0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		0.0f,	0.0f,		// v1
+            0.4740f,	0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            0.4740f,	0.2240f,	0.0520f,		0.0f,	-1.0f,	0.0f,		1.0f,	1.0f,		// v7
+            0.4740f,	0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            -0.4740f,	0.2240f,	0.0520f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
 
-            -0.474f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
-            -0.474f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
-            -0.461f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            -0.461f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v6
-            -0.461f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            -0.474f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
+            // left border
+            // front
+            -0.4740f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
+            -0.4740f,	-0.2110f,	0.0520f,		0.0f,	0.0f,	1.0f,		0.0f,	0.0f,		// v1
+            -0.4610f,	-0.2110f,	0.0520f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            -0.4610f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		1.0f,	1.0f,		// v2
+            -0.4610f,	-0.2110f,	0.0520f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            -0.4740f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
 
-            -0.474f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
-            -0.474f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
-            -0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            -0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
-            -0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            -0.474f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
+            // back					0.0f,	0.0f,	-1.0f,
+            -0.4740f,	0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
+            -0.4740f,	0.2110f,	0.0520f,		0.0f,	0.0f,	-1.0f,		0.0f,	0.0f,		// v5
+            -0.4610f,	0.2110f,	0.0520f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            -0.4610f,	0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		1.0f,	1.0f,		// v6
+            -0.4610f,	0.2110f,	0.0520f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            -0.4740f,	0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
 
-            -0.461f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            -0.461f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            -0.461f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            -0.461f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v6
-            -0.461f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            -0.461f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
+            // left
+            -0.4740f,	0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
+            -0.4740f,	0.2110f,	0.0520f,		-1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v5
+            -0.4740f,	-0.2110f,	0.0520f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            -0.4740f,	-0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v0
+            -0.4740f,	-0.2110f,	0.0520f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            -0.4740f,	0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            -0.474f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
-            -0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
-            -0.461f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            -0.461f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v6
-            -0.461f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            -0.474f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
+            // right
+            -0.4610f,	-0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
+            -0.4610f,	-0.2110f,	0.0520f,		1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v3
+            -0.4610f,	0.2110f,	0.0520f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            -0.4610f,	0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v6
+            -0.4610f,	0.2110f,	0.0520f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            -0.4610f,	-0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
 
-            -0.474f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
-            -0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            -0.461f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            -0.461f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            -0.461f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            -0.474f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
+            // top
+            -0.4740f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
+            -0.4740f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	0.0f,		// v0
+            -0.4610f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            -0.4610f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	1.0f,		// v6
+            -0.4610f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            -0.4740f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            // table right border
-            0.461f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
-            0.461f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            0.461f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
+            // bottom
+            -0.4740f,	0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
+            -0.4740f,	-0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		0.0f,	0.0f,		// v1
+            -0.4610f,	-0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            -0.4610f,	0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		1.0f,	1.0f,		// v7
+            -0.4610f,	-0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            -0.4740f,	0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
 
-            0.461f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
-            0.461f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
-            0.474f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.474f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v6
-            0.474f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.461f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
+            // right border
+            // front
+            0.4610f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
+            0.4610f,	-0.2110f,	0.0520f,		0.0f,	0.0f,	1.0f,		0.0f,	0.0f,		// v1
+            0.4740f,	-0.2110f,	0.0520f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            0.4740f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		1.0f,	1.0f,		// v2
+            0.4740f,	-0.2110f,	0.0520f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            0.4610f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
 
-            0.461f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
-            0.461f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
-            0.461f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            0.461f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
-            0.461f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            0.461f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
+            // back					0.0f,	0.0f,	-1.0f,
+            0.4610f,	0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
+            0.4610f,	0.2110f,	0.0520f,		0.0f,	0.0f,	-1.0f,		0.0f,	0.0f,		// v5
+            0.4740f,	0.2110f,	0.0520f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            0.4740f,	0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		1.0f,	1.0f,		// v6
+            0.4740f,	0.2110f,	0.0520f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            0.4610f,	0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
 
-            0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            0.474f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.474f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v6
-            0.474f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
+            // left
+            0.4610f,	0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
+            0.4610f,	0.2110f,	0.0520f,		-1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v5
+            0.4610f,	-0.2110f,	0.0520f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            0.4610f,	-0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v0
+            0.4610f,	-0.2110f,	0.0520f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            0.4610f,	0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            0.461f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
-            0.461f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v0
-            0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            0.474f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v6
-            0.474f,-0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v2
-            0.461f, 0.211f,-0.013f,   0.686f, 0.933f, 0.933f, // v4
+            // right
+            0.4740f,	-0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
+            0.4740f,	-0.2110f,	0.0520f,		1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v3
+            0.4740f,	0.2110f,	0.0520f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            0.4740f,	0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v6
+            0.4740f,	0.2110f,	0.0520f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            0.4740f,	-0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
 
-            0.461f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
-            0.461f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v1
-            0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            0.474f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v7
-            0.474f,-0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v3
-            0.461f, 0.211f,-0.052f,   0.686f, 0.933f, 0.933f, // v5
+            // top
+            0.4610f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
+            0.4610f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	0.0f,		// v0
+            0.4740f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            0.4740f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	1.0f,		// v6
+            0.4740f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            0.4610f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            // table front left leg
-            -0.4285f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
-            -0.4285f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            -0.4610f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            -0.4610f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            -0.4610f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            -0.4285f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
+            // bottom
+            0.4610f,	0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
+            0.4610f,	-0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		0.0f,	0.0f,		// v1
+            0.4740f,	-0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            0.4740f,	0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		1.0f,	1.0f,		// v7
+            0.4740f,	-0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            0.4610f,	0.2110f,	0.0520f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
 
-            -0.4285f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
-            -0.4285f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
-            -0.4610f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            -0.4610f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v6
-            -0.4610f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            -0.4285f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
+            // front left leg
+            // front
+            -0.4285f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
+            -0.4285f,	-0.2110f,	0.5000f,		0.0f,	0.0f,	1.0f,		0.0f,	0.0f,		// v1
+            -0.4610f,	-0.2110f,	0.5000f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            -0.4610f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		1.0f,	1.0f,		// v2
+            -0.4610f,	-0.2110f,	0.5000f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            -0.4285f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
 
-            -0.4285f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
-            -0.4285f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
-            -0.4285f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            -0.4285f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
-            -0.4285f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            -0.4285f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
+            // back					0.0f,	0.0f,	-1.0f,
+            -0.4285f,	-0.1785f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
+            -0.4285f,	-0.1785f,	0.5000f,		0.0f,	0.0f,	-1.0f,		0.0f,	0.0f,		// v5
+            -0.4610f,	-0.1785f,	0.5000f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            -0.4610f,	-0.1785f,	0.0130f,		0.0f,	0.0f,	-1.0f,		1.0f,	1.0f,		// v6
+            -0.4610f,	-0.1785f,	0.5000f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            -0.4285f,	-0.1785f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
 
-            -0.4610f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            -0.4610f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            -0.4610f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            -0.4610f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v6
-            -0.4610f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            -0.4610f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
+            // left
+            -0.4285f,	-0.1785f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
+            -0.4285f,	-0.1785f,	0.5000f,		-1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v5
+            -0.4285f,	-0.2110f,	0.5000f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            -0.4285f,	-0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v0
+            -0.4285f,	-0.2110f,	0.5000f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            -0.4285f,	-0.1785f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            -0.4285f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
-            -0.4285f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
-            -0.4610f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            -0.4610f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v6
-            -0.4610f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            -0.4285f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
+            // right
+            -0.4610f,	-0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
+            -0.4610f,	-0.2110f,	0.5000f,		1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v3
+            -0.4610f,	-0.1785f,	0.5000f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            -0.4610f,	-0.1785f,	0.0130f,		1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v6
+            -0.4610f,	-0.1785f,	0.5000f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            -0.4610f,	-0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
 
-            -0.4285f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
-            -0.4285f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            -0.4610f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            -0.4610f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            -0.4610f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            -0.4285f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
+            // top
+            -0.4285f,	-0.1785f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
+            -0.4285f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	0.0f,		// v0
+            -0.4610f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            -0.4610f,	-0.1785f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	1.0f,		// v6
+            -0.4610f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            -0.4285f,	-0.1785f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            // table front right leg
-            0.4285f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
-            0.4285f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            0.4610f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            0.4610f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            0.4610f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            0.4285f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
+            // bottom
+            -0.4285f,	-0.1785f,	0.5000f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
+            -0.4285f,	-0.2110f,	0.5000f,		0.0f,	-1.0f,	0.0f,		0.0f,	0.0f,		// v1
+            -0.4610f,	-0.2110f,	0.5000f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            -0.4610f,	-0.1785f,	0.5000f,		0.0f,	-1.0f,	0.0f,		1.0f,	1.0f,		// v7
+            -0.4610f,	-0.2110f,	0.5000f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            -0.4285f,	-0.1785f,	0.5000f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
 
-            0.4285f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
-            0.4285f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
-            0.4610f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            0.4610f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v6
-            0.4610f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            0.4285f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
+            // front right leg
+            // front
+            0.4285f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
+            0.4285f,	-0.2110f,	0.5000f,		0.0f,	0.0f,	1.0f,		0.0f,	0.0f,		// v1
+            0.4610f,	-0.2110f,	0.5000f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            0.4610f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		1.0f,	1.0f,		// v2
+            0.4610f,	-0.2110f,	0.5000f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            0.4285f,	-0.2110f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
 
-            0.4285f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
-            0.4285f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
-            0.4285f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            0.4285f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
-            0.4285f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            0.4285f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
+            // back					0.0f,	0.0f,	-1.0f,
+            0.4285f,	-0.1785f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
+            0.4285f,	-0.1785f,	0.5000f,		0.0f,	0.0f,	-1.0f,		0.0f,	0.0f,		// v5
+            0.4610f,	-0.1785f,	0.5000f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            0.4610f,	-0.1785f,	0.0130f,		0.0f,	0.0f,	-1.0f,		1.0f,	1.0f,		// v6
+            0.4610f,	-0.1785f,	0.5000f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            0.4285f,	-0.1785f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
 
-            0.4610f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            0.4610f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            0.4610f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            0.4610f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v6
-            0.4610f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            0.4610f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
+            // left
+            0.4285f,	-0.1785f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
+            0.4285f,	-0.1785f,	0.5000f,		-1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v5
+            0.4285f,	-0.2110f,	0.5000f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            0.4285f,	-0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v0
+            0.4285f,	-0.2110f,	0.5000f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            0.4285f,	-0.1785f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            0.4285f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
-            0.4285f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
-            0.4610f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            0.4610f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v6
-            0.4610f,-0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            0.4285f,-0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
+            // right
+            0.4610f,	-0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
+            0.4610f,	-0.2110f,	0.5000f,		1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v3
+            0.4610f,	-0.1785f,	0.5000f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            0.4610f,	-0.1785f,	0.0130f,		1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v6
+            0.4610f,	-0.1785f,	0.5000f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            0.4610f,	-0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
 
-            0.4285f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
-            0.4285f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            0.4610f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            0.4610f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            0.4610f,-0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            0.4285f,-0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
+            // top
+            0.4285f,	-0.1785f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
+            0.4285f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	0.0f,		// v0
+            0.4610f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            0.4610f,	-0.1785f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	1.0f,		// v6
+            0.4610f,	-0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            0.4285f,	-0.1785f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            // table back left leg
-            -0.4610f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
-            -0.4610f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            -0.4285f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            -0.4285f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            -0.4285f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            -0.4610f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
+            // bottom
+            0.4285f,	-0.1785f,	0.5000f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
+            0.4285f,	-0.2110f,	0.5000f,		0.0f,	-1.0f,	0.0f,		0.0f,	0.0f,		// v1
+            0.4610f,	-0.2110f,	0.5000f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            0.4610f,	-0.1785f,	0.5000f,		0.0f,	-1.0f,	0.0f,		1.0f,	1.0f,		// v7
+            0.4610f,	-0.2110f,	0.5000f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            0.4285f,	-0.1785f,	0.5000f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
 
-            -0.4610f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
-            -0.4610f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
-            -0.4285f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            -0.4285f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v6
-            -0.4285f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            -0.4610f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
+            // back left leg
+            // front
+            -0.4610f,	0.1785f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
+            -0.4610f,	0.1785f,	0.5000f,		0.0f,	0.0f,	1.0f,		0.0f,	0.0f,		// v1
+            -0.4285f,	0.1785f,	0.5000f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            -0.4285f,	0.1785f,	0.0130f,		0.0f,	0.0f,	1.0f,		1.0f,	1.0f,		// v2
+            -0.4285f,	0.1785f,	0.5000f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            -0.4610f,	0.1785f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
 
-            -0.4610f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
-            -0.4610f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
-            -0.4610f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            -0.4610f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
-            -0.4610f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            -0.4610f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
+            // back					0.0f,	0.0f,	-1.0f,
+            -0.4610f,	0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
+            -0.4610f,	0.2110f,	0.5000f,		0.0f,	0.0f,	-1.0f,		0.0f,	0.0f,		// v5
+            -0.4285f,	0.2110f,	0.5000f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            -0.4285f,	0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		1.0f,	1.0f,		// v6
+            -0.4285f,	0.2110f,	0.5000f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            -0.4610f,	0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
 
-            -0.4285f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            -0.4285f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            -0.4285f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            -0.4285f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v6
-            -0.4285f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            -0.4285f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
+            // left
+            -0.4610f,	0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
+            -0.4610f,	0.2110f,	0.5000f,		-1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v5
+            -0.4610f,	0.1785f,	0.5000f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            -0.4610f,	0.1785f,	0.0130f,		-1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v0
+            -0.4610f,	0.1785f,	0.5000f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            -0.4610f,	0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            -0.4610f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
-            -0.4610f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
-            -0.4285f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            -0.4285f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v6
-            -0.4285f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            -0.4610f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
+            // right
+            -0.4285f,	0.1785f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
+            -0.4285f,	0.1785f,	0.5000f,		1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v3
+            -0.4285f,	0.2110f,	0.5000f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            -0.4285f,	0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v6
+            -0.4285f,	0.2110f,	0.5000f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            -0.4285f,	0.1785f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
 
-            -0.4610f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
-            -0.4610f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            -0.4285f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            -0.4285f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            -0.4285f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            -0.4610f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
+            // top
+            -0.4610f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
+            -0.4610f,	0.1785f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	0.0f,		// v0
+            -0.4285f,	0.1785f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            -0.4285f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	1.0f,		// v6
+            -0.4285f,	0.1785f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            -0.4610f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            // table back right leg
-            0.4285f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
-            0.4285f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            0.4610f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            0.4610f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            0.4610f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            0.4285f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
+            // bottom	// bottom
+            -0.4610f,	0.2110f,	0.5000f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
+            -0.4610f,	0.1785f,	0.5000f,		0.0f,	-1.0f,	0.0f,		0.0f,	0.0f,		// v1
+            -0.4285f,	0.1785f,	0.5000f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            -0.4285f,	0.2110f,	0.5000f,		0.0f,	-1.0f,	0.0f,		1.0f,	1.0f,		// v7
+            -0.4285f,	0.1785f,	0.5000f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            -0.4610f,	0.2110f,	0.5000f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
 
-            0.4285f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
-            0.4285f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
-            0.4610f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            0.4610f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v6
-            0.4610f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            0.4285f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
+            // back right leg
+            // front
+            0.4285f,	0.1785f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
+            0.4285f,	0.1785f,	0.5000f,		0.0f,	0.0f,	1.0f,		0.0f,	0.0f,		// v1
+            0.4610f,	0.1785f,	0.5000f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            0.4610f,	0.1785f,	0.0130f,		0.0f,	0.0f,	1.0f,		1.0f,	1.0f,		// v2
+            0.4610f,	0.1785f,	0.5000f,		0.0f,	0.0f,	1.0f,		1.0f,	0.0f,		// v3
+            0.4285f,	0.1785f,	0.0130f,		0.0f,	0.0f,	1.0f,		0.0f,	1.0f,		// v0
 
-            0.4285f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
-            0.4285f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
-            0.4285f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            0.4285f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
-            0.4285f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            0.4285f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
+            // back					0.0f,	0.0f,	-1.0f,
+            0.4285f,	0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
+            0.4285f,	0.2110f,	0.5000f,		0.0f,	0.0f,	-1.0f,		0.0f,	0.0f,		// v5
+            0.4610f,	0.2110f,	0.5000f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            0.4610f,	0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		1.0f,	1.0f,		// v6
+            0.4610f,	0.2110f,	0.5000f,		0.0f,	0.0f,	-1.0f,		1.0f,	0.0f,		// v7
+            0.4285f,	0.2110f,	0.0130f,		0.0f,	0.0f,	-1.0f,		0.0f,	1.0f,		// v4
 
-            0.4610f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            0.4610f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            0.4610f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            0.4610f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v6
-            0.4610f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            0.4610f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
+            // left
+            0.4285f,	0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
+            0.4285f,	0.2110f,	0.5000f,		-1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v5
+            0.4285f,	0.1785f,	0.5000f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            0.4285f,	0.1785f,	0.0130f,		-1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v0
+            0.4285f,	0.1785f,	0.5000f,		-1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v1
+            0.4285f,	0.2110f,	0.0130f,		-1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v4
 
-            0.4285f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
-            0.4285f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v0
-            0.4610f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            0.4610f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v6
-            0.4610f,0.1785f,-0.0130f,   0.941f, 0.902f, 0.549f, // v2
-            0.4285f,0.2110f,-0.0130f,   0.941f, 0.902f, 0.549f, // v4
+            // right
+            0.4610f,	0.1785f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
+            0.4610f,	0.1785f,	0.5000f,		1.0f,	0.0f,	0.0f,		0.0f,	0.0f,		// v3
+            0.4610f,	0.2110f,	0.5000f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            0.4610f,	0.2110f,	0.0130f,		1.0f,	0.0f,	0.0f,		1.0f,	1.0f,		// v6
+            0.4610f,	0.2110f,	0.5000f,		1.0f,	0.0f,	0.0f,		1.0f,	0.0f,		// v7
+            0.4610f,	0.1785f,	0.0130f,		1.0f,	0.0f,	0.0f,		0.0f,	1.0f,		// v2
 
-            0.4285f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
-            0.4285f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v1
-            0.4610f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            0.4610f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v7
-            0.4610f,0.1785f,-0.5000f,   0.941f, 0.902f, 0.549f, // v3
-            0.4285f,0.2110f,-0.5000f,   0.941f, 0.902f, 0.549f, // v5
+            // top
+            0.4285f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
+            0.4285f,	0.1785f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	0.0f,		// v0
+            0.4610f,	0.1785f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            0.4610f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	1.0f,		// v6
+            0.4610f,	0.1785f,	0.0130f,		0.0f,	1.0f,	0.0f,		1.0f,	0.0f,		// v2
+            0.4285f,	0.2110f,	0.0130f,		0.0f,	1.0f,	0.0f,		0.0f,	1.0f,		// v4
+
+            // bottom
+            0.4285f,	0.2110f,	0.5000f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
+            0.4285f,	0.1785f,	0.5000f,		0.0f,	-1.0f,	0.0f,		0.0f,	0.0f,		// v1
+            0.4610f,	0.1785f,	0.5000f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            0.4610f,	0.2110f,	0.5000f,		0.0f,	-1.0f,	0.0f,		1.0f,	1.0f,		// v7
+            0.4610f,	0.1785f,	0.5000f,		0.0f,	-1.0f,	0.0f,		1.0f,	0.0f,		// v3
+            0.4285f,	0.2110f,	0.5000f,		0.0f,	-1.0f,	0.0f,		0.0f,	1.0f,		// v5
+
+
+
+
     };
 
-    glGenVertexArrays(1, &VaoId);
-    glBindVertexArray(VaoId);
+    // Generate buffer ids
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
 
-    //GLuint VboId; // variable for vertex buffer object id
-    glGenBuffers(1, &VboId); // Creates 2 buffers
-    glBindBuffer(GL_ARRAY_BUFFER, VboId); // Activates the buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(a), a, GL_STATIC_DRAW); // sends vertex or coordinate data to the GPU
+    // Activate the VAO before binding and setting VBOs and VAPs
+    glBindVertexArray(VAO);
 
-    /* Creates the vertex Attribute Pointer */
-    glEnableVertexAttribArray(0); // Specifies the initial position of the coordinates in the buffer
+    // Activate the VBO
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // Copy vertices to VBO
 
-    /*Sets an attribute pointer position for the vertex colors i.e. Attribute 1 for rgba floats. Attribute 0 was for position x, y */
-    glEnableVertexAttribArray(1); // Specifies position 1 for the color values in the buffer
+    // set attribute pointer 0 to hold position data
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *) 0);
+    glEnableVertexAttribArray(0); // Enables vertex attribute
 
-    /*
-     * Instructs the GPU on how to handle the vertex buffer object data.
-     * Parameters: attribPointerPosition | coordinates per vertex | data type | deactivate normalization | 0 strides | o offset
-     */
-    glVertexAttribPointer(0, VertexInfo.getDimension(), GL_FLOAT, GL_FALSE, VertexInfo.getVertexStride(), (GLvoid*)0);
-    glVertexAttribPointer(1, VertexInfo.getColorOffset(), GL_FLOAT, GL_FALSE, VertexInfo.getColorStride(), VertexInfo.getRGBAOffset());
+    // Set attribute pointer 1 to hold Normal data
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *) (3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
 
-    glBindVertexArray(0);
+    // Set attribute pointer 2 to hold Texture coordinate data
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *) (6 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0); // deactivates the vertex array object
 
 }
-// Destory VBO properly
+// Destroy VBO properly
 void DestroyVBO(void){
     GLenum ErrorCheckValue = glGetError();
 
+    glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glDeleteBuffers(1, &VboId);
+    glDeleteBuffers(1, &VBO);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glDeleteBuffers(1, &IndexBufferId);
 
     glBindVertexArray(0);
-    glDeleteVertexArrays(1, &VaoId);
+    glDeleteVertexArrays(1, &VAO);
 
     ErrorCheckValue = glGetError();
     if (ErrorCheckValue != GL_NO_ERROR)
@@ -947,37 +966,48 @@ void DestroyVBO(void){
     }
 }
 
+/* Generate and load the texture */
+void UGenerateTexture() {
+
+    int width, height;
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    unsigned char *image = SOIL_load_image("wood003.jpg", &width, &height, 0, SOIL_LOAD_RGBA);// loads texture file
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    SOIL_free_image_data(image);
+    glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
+}
+
+
 /*
  * When a key is pressed in the window then process this keystroke
  * and perform a behavior.
  */
 void KeyboardFunction(unsigned char key, int X, int Y)
 {
-    switch (key)
-    {
-        case 'w':
-            std::cout << "pressed w" << std::endl;
-            cameraPos += cameraSpeed * cameraForwardZ;
-            break;
-        case 's':
-            std::cout << "pressed s" << std::endl;
-            cameraPos -= cameraSpeed * cameraForwardZ;
-            break;
-        case 'a':
-            std::cout << "pressed a" << std::endl;
-            cameraPos -= glm::normalize(glm::cross(cameraForwardZ, cameraUpY)) * cameraSpeed;
-            break;
-        case 'd':
-            std::cout << "pressed d" << std::endl;
-            cameraPos += glm::normalize(glm::cross(cameraForwardZ, cameraUpY)) * cameraSpeed;
-            break;
-        default:
-            std::cout << "Press a key!" << std::endl;
+    // 2D orthographic display
+    if (key == '2'){
+        // Creates an Orthographic projection (3D objects represented in 2D)
+        projection =  glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
     }
+    // 3D perspective
+    if (key == '3'){
+        // Creates a 3D projection
+        projection = glm::perspective(45.0f, (GLfloat)WindowWidth / (GLfloat)WindowHeight, 0.1f, 100.0f);
+    }
+
 }
 
 void UKeyRelease(unsigned char key, int x, int y){
-    std::cout << currKey << " released" << std::endl;
     currKey = '0';
 }
 
@@ -992,29 +1022,31 @@ bool IsAltKeyPressed(){
 void MouseClick(int btn, int state, int x, int y){
     // Alt+Left Mouse is an orbital command
     if ((btn == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN) && IsAltKeyPressed()){
-        std::cout << "Alt + Left mouse button pressed" << std::endl;
-        zoom = false;
         orbit = true;
     }
 
-    // Alt+Right Mouse is a zoom command
-    if ((btn == GLUT_RIGHT_BUTTON) && (state == GLUT_DOWN) && IsAltKeyPressed()){
-        std::cout << "Alt + Right mouse button pressed" << std::endl;
-        orbit = false;
-        zoom = true;
-    }
     // reset orbit/zoom variables when mouse press is released
     if (state == GLUT_UP) {
         orbit = false;
-        zoom = false;
     }
 }
 
 void SetView(){
+    // clamp azimuth and altitude to prevent irregular camera angles
+    // e.g., a 90-degree camera rotation clamp on the pitch axis
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+    if (yaw > 180)
+        yaw -= 360;
+    if (yaw < -180)
+        yaw += 180;
+
     // Sets the front variable that controls CameraForwardZ
     front.x = 10.0f * cos(glm::radians(yaw));
     front.y = 10.0f * sin(glm::radians(pitch));
-    front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw)) * 10.f;
+    front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw)) * 10.0f;
 }
 
 // tracks the mouse movement withing the window
@@ -1030,32 +1062,6 @@ void MouseMove(int x, int y){
 
 // tracks when mouse button is pressed and moved
 void MousePressMove(int x, int y){
-    if (zoom){
-        // if current mouse position y vector is less than the previous vector
-        // zoom out, otherwise current mouse y vector is greater so zoom in
-        if (y < lastMouseY) {
-            // zoom out
-            // if while zooming out the image will reverse and start zooming in again, so let's
-            // control this to not surpass zoomSpeed value
-            if (scaleX <= zoomSpeed) {
-                scaleX = scaleY = scaleZ = zoomSpeed;
-            }else {
-                scaleX = scaleY = scaleZ -= zoomSpeed;
-            }
-            std::cout << "scale (X, Y, Z)" << scaleX << " " << scaleY << " " << scaleZ << std::endl;
-        }else {
-            // zoom in
-            scaleX += zoomSpeed;
-            scaleY += zoomSpeed;
-            scaleZ += zoomSpeed;
-            std::cout << "scale (X, Y, Z)" << scaleX << " " << scaleY << " " << scaleZ << std::endl;
-        }
-
-        // Updates with the new mouse coordinates
-        lastMouseX = x;
-        lastMouseY = y;
-    }
-
     if (orbit){
         // Gets the direction the mouse was move in x and y
         mouseOffsetX = x - lastMouseX;
@@ -1073,7 +1079,37 @@ void MousePressMove(int x, int y){
         yaw += mouseOffsetX;
         pitch += mouseOffsetY;
 
+        cout<<"yaw:"<<yaw<<", pitch:"<<pitch<<endl;
+
     }
+
+    SetView();
+}
+
+// Processes the input received from the mouse scroll wheel.
+// Only requires y axis input, although some mice have an x-axis on scroll wheels
+void UMouseScroll(int wheel, int direction, int x, int y){
+    // if current mouse position y vector is less than the previous vector
+    // zoom out, otherwise current mouse y vector is greater so zoom in
+    if (direction == -1) {
+        // zoom out
+        // if while zooming out the image will reverse and start zooming in again, so let's
+        // control this to not surpass zoomSpeed value
+        if (scaleY <= zoomSpeed) {
+            scaleX = scaleY = scaleZ = zoomSpeed;
+        }else {
+            scaleX = scaleY = scaleZ -= zoomSpeed;
+        }
+    }else {
+        // zoom in
+        scaleX += zoomSpeed;
+        scaleY += zoomSpeed;
+        scaleZ += zoomSpeed;
+    }
+
+    // Updates with the new mouse coordinates
+    lastMouseX = x;
+    lastMouseY = y;
 
     SetView();
 }
@@ -1084,6 +1120,7 @@ void MousePressMove(int x, int y){
  * redisplay the window's normal plane
  */
 void IdleFunction(void)
+
 {
     glutPostRedisplay();
 }

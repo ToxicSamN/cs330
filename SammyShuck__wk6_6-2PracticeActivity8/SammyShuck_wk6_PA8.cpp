@@ -32,8 +32,8 @@ using namespace std; // standard namespace
 #endif
 
 // Variable declaration for shader, window size initialization, buffer and array objects
-GLint objectShaderProgram, WindowWidth = 800, WindowHeight = 600;
-GLuint VBO, objectVAO, texture;
+GLint shaderProgram, WindowWidth = 800, WindowHeight = 600;
+GLuint VBO, VAO, texture;
 GLfloat degrees = glm::radians(0.0f); // converts float to degrees
 
 // key and fill light colors
@@ -63,7 +63,7 @@ void UGenerateTexture(void);
 
 
 /* Light Vertex Shader source code */
-const GLchar *lightVertexShaderSource = GLSL(330,
+const GLchar *vertexShaderSource = GLSL(330,
 	 layout(location = 0) in vec3 position; // VAP position 0 for vertex position data
 	 layout(location = 1) in vec3 normal; // VAP position 1 for normals
 	 layout(location = 2) in vec2 textureCoordinate;
@@ -78,19 +78,15 @@ const GLchar *lightVertexShaderSource = GLSL(330,
 	 uniform mat4 projection;
 
 	 void main() {
-		 gl_Position = projection * view * model * vec4(position,
-														1.0f);// Transforms vertices into clip coordinates
-		 Normal = mat3(transpose(inverse(model))) *
-				  normal; // get normal vectors in world space only and exclude normal translation properties
-		 FragmentPos = vec3(model * vec4(position,
-										 1.0f)); // Gets fragment / pixel position in world space only (exclude view and projection)
-		 mobileTextureCoordinate = vec2(textureCoordinate.x, 1.0f -
-															 textureCoordinate.y); // flips the texture horizontally
+		 gl_Position = projection * view * model * vec4(position, 1.0f);// Transforms vertices into clip coordinates
+		 Normal = mat3(transpose(inverse(model))) * normal; // get normal vectors in world space only and exclude normal translation properties
+		 FragmentPos = vec3(model * vec4(position, 1.0f)); // Gets fragment / pixel position in world space only (exclude view and projection)
+		 mobileTextureCoordinate = vec2(textureCoordinate.x, 1.0f - textureCoordinate.y); // flips the texture horizontally
 	 }
 );
 
 /* Light Fragment Shader source code */
-const GLchar *lightFragmentShaderSource = GLSL(330,
+const GLchar *fragmentShaderSource = GLSL(330,
    in vec3 Normal; //For incoming normals
    in vec3 FragmentPos; //for incoming fragment position
    in vec2 mobileTextureCoordinate;
@@ -165,7 +161,7 @@ int main(int argc, char *argv[]) {
     UGenerateTexture();
 
     // Use the Shader Program
-    glUseProgram(objectShaderProgram);
+    glUseProgram(shaderProgram);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Set background color
 
@@ -174,7 +170,7 @@ int main(int argc, char *argv[]) {
     glutMainLoop();
 
     // Destroy buffer objects once used
-    glDeleteVertexArrays(1, &objectVAO);
+    glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 
     return 0;
@@ -190,10 +186,13 @@ void UResizeWindow(int w, int h) {
 // Renders Graphics
 void URenderGraphics(void) {
     glEnable(GL_DEPTH_TEST); // Enable z-depth
+    // Enable Alpha support
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clears the screen
 
-    glBindVertexArray(objectVAO); // Activate the vertex array object before rendering and transforming them
+    glBindVertexArray(VAO); // Activate the vertex array object before rendering and transforming them
 
     // Transforms the object
     glm::mat4 model;
@@ -211,9 +210,9 @@ void URenderGraphics(void) {
     projection = glm::perspective(45.0f, (GLfloat) WindowWidth / (GLfloat) WindowHeight, 0.1f, 100.0f);
 
     // Retrieves and passes transform matrices to the shader program
-    GLint modelLoc = glGetUniformLocation(objectShaderProgram, "model");
-    GLint viewLoc = glGetUniformLocation(objectShaderProgram, "view");
-    GLint projLoc = glGetUniformLocation(objectShaderProgram, "projection");
+    GLint modelLoc = glGetUniformLocation(shaderProgram, "model");
+    GLint viewLoc = glGetUniformLocation(shaderProgram, "view");
+    GLint projLoc = glGetUniformLocation(shaderProgram, "projection");
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -227,11 +226,11 @@ void URenderGraphics(void) {
     * uniform vec3 fillLightPos
     * uniform vec3 viewPosition
     */
-    GLint keyLightColorLoc = glGetUniformLocation(objectShaderProgram, "keyLightColor");
-    GLint fillLightColorLoc = glGetUniformLocation(objectShaderProgram, "fillLightColor");
-    GLint keyLightPosLoc = glGetUniformLocation(objectShaderProgram, "keyLightPos");
-    GLint fillLightPosLoc = glGetUniformLocation(objectShaderProgram, "fillLightPos");
-    GLint viewPositionLoc = glGetUniformLocation(objectShaderProgram, "viewPosition");
+    GLint keyLightColorLoc = glGetUniformLocation(shaderProgram, "keyLightColor");
+    GLint fillLightColorLoc = glGetUniformLocation(shaderProgram, "fillLightColor");
+    GLint keyLightPosLoc = glGetUniformLocation(shaderProgram, "keyLightPos");
+    GLint fillLightPosLoc = glGetUniformLocation(shaderProgram, "fillLightPos");
+    GLint viewPositionLoc = glGetUniformLocation(shaderProgram, "viewPosition");
 
     // pass color, light, and camera data to the cube shader programs corresponding uniforms
     glUniform3f(keyLightColorLoc, keyLightColor.r, keyLightColor.g, keyLightColor.b);
@@ -242,6 +241,7 @@ void URenderGraphics(void) {
 
     glutPostRedisplay();
 
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
 
     // Draws the triangles
@@ -256,20 +256,20 @@ void URenderGraphics(void) {
 void UCreateShader() {
     // Vertex shader
     GLint vertexShader = glCreateShader(GL_VERTEX_SHADER); // creates the vertex shader
-    glShaderSource(vertexShader, 1, &lightVertexShaderSource, NULL); // Attaches the vertex shader to the source code
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL); // Attaches the vertex shader to the source code
     glCompileShader(vertexShader); // compiles the vertex shader
 
     // Fragment shader
     GLint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER); // Creates the fragment shader
-    glShaderSource(fragmentShader, 1, &lightFragmentShaderSource,
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource,
                    NULL); // Attaches the fragment shader to the source code
     glCompileShader(fragmentShader); // compiles the fragment shader
 
     // Shader Program
-    objectShaderProgram = glCreateProgram(); // Creates the shader program and returns an id
-    glAttachShader(objectShaderProgram, vertexShader); // Attach vertex shader to the shader program
-    glAttachShader(objectShaderProgram, fragmentShader); // Attach fragment shader to the shader program
-    glLinkProgram(objectShaderProgram); // link vertex and fragment shader to shader program
+    shaderProgram = glCreateProgram(); // Creates the shader program and returns an id
+    glAttachShader(shaderProgram, vertexShader); // Attach vertex shader to the shader program
+    glAttachShader(shaderProgram, fragmentShader); // Attach fragment shader to the shader program
+    glLinkProgram(shaderProgram); // link vertex and fragment shader to shader program
 
     // delete the vertex and fragment shaders once linked
     glDeleteShader(vertexShader);
@@ -309,11 +309,11 @@ void UCreateBuffers() {
     };
 
     // Generate buffer ids
-    glGenVertexArrays(1, &objectVAO);
+    glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 
     // Activate the VAO before binding and setting VBOs and VAPs
-    glBindVertexArray(objectVAO);
+    glBindVertexArray(VAO);
 
     // Activate the VBO
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -334,18 +334,24 @@ void UCreateBuffers() {
     glBindVertexArray(0); // deactivates the vertex array object
 }
 
-// Generate and load the texture
+/* Generate and load the texture */
 void UGenerateTexture() {
+
+	int width, height;
 
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    int width, height;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    unsigned char *image = SOIL_load_image("snhu.jpg", &width, &height, 0, SOIL_LOAD_RGB);// loads texture file
+    unsigned char *image = SOIL_load_image("snhu.jpg", &width, &height, 0, SOIL_LOAD_RGBA);// loads texture file
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
     glGenerateMipmap(GL_TEXTURE_2D);
     SOIL_free_image_data(image);
     glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
 }
+

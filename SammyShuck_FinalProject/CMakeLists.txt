@@ -11,5 +11,4 @@ target_link_libraries(SammyShuck_FinalProject opengl32)
 target_link_libraries(SammyShuck_FinalProject glu32)
 target_link_libraries(SammyShuck_FinalProject freeglut)
 
-SET(SOIL SOIL)
-link_directories(C:\\TDM-GCC-64\\x86_64-w64-mingw32\\lib\\SOIL)
+find_package(SOIL2 REQUIRED)

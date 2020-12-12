@@ -1,0 +1,20 @@
+"C:\Program Files\JetBrains\CLion 2020.1.1\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=C:/TDM-GCC-64/bin/mingw32-make.exe -DCMAKE_C_COMPILER=C:/TDM-GCC-64/bin/gcc.exe -DCMAKE_CXX_COMPILER=C:/TDM-GCC-64/bin/g++.exe -G "CodeBlocks - MinGW Makefiles" "C:\Users\Sammy\Google Drive\_SNHU_Course_Work\BSCS-Computer_Science\CS-330-J2956_Computer_Graphic_and_Visualization\code\cs330\SammyShuck_FinalProject"
+CMake Error at CMakeLists.txt:14 (find_package):
+  By not providing "FindSOIL2.cmake" in CMAKE_MODULE_PATH this project has
+  asked CMake to find a package configuration file provided by "SOIL2", but
+  CMake did not find one.
+
+  Could not find a package configuration file provided by "SOIL2" with any of
+  the following names:
+
+    SOIL2Config.cmake
+    soil2-config.cmake
+
+  Add the installation prefix of "SOIL2" to CMAKE_PREFIX_PATH or set
+  "SOIL2_DIR" to a directory containing one of the above files.  If "SOIL2"
+  provides a separate development package or SDK, be sure it has been
+  installed.
+
+
+-- Configuring incomplete, errors occurred!
+See also "C:/Users/Sammy/Google Drive/_SNHU_Course_Work/BSCS-Computer_Science/CS-330-J2956_Computer_Graphic_and_Visualization/code/cs330/SammyShuck_FinalProject/cmake-build-debug/CMakeFiles/CMakeOutput.log".

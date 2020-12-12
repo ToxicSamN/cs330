@@ -1,3 +1,13 @@
+/*
+* Author: Sammy Shuck
+* Name: CS-330 6-1 Practice Activity 7
+* Week: Six
+* Assignment: 6-1 Practice Activity 7: Assigning Textures to a Pyramid
+* Course: CS-330-J2956 Comp Graphic and Visualization 20EW2
+* Date: 12/6/2020
+* Version: 1.0
+* Copyright: Copyright © 2017 SNHU COCE
+*/
 
 // header inclusions
 #include <iostream>
@@ -242,9 +252,9 @@ void UGenerateTexture(){
 
 	int width, height;
 
-	unsigned char* image = SOIL_load_image("snhu.jpg", &width, &height, 0, SOIL_LOAD_RGB);// loads texture file
+	unsigned char* image = SOIL_load_image("snhu.jpg", &width, &height, 0, SOIL_LOAD_RGBA);// loads texture file
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	SOIL_free_image_data(image);
 	glBindTexture(GL_TEXTURE_2D, 0); // deactivates the texture
