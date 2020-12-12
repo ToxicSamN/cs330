@@ -1,3 +1,0 @@
-"C:\Program Files\JetBrains\CLion 2020.1.1\bin\cmake\win\bin\cmake.exe" -E remove -f CMakeFiles\Tutorial.dir/objects.a
-C:\TDM-GCC-64\bin\ar.exe cr CMakeFiles\Tutorial.dir/objects.a @CMakeFiles\Tutorial.dir\objects1.rsp
-C:\TDM-GCC-64\bin\g++.exe -g   -Wl,--whole-archive CMakeFiles\Tutorial.dir/objects.a -Wl,--no-whole-archive  -o Tutorial.exe -Wl,--out-implib,libTutorial.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Tutorial.dir\linklibs.rsp
