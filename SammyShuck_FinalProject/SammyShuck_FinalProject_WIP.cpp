@@ -42,57 +42,57 @@ void MouseMove(int x, int y);
 void MousePressMove(int x, int y);
 void UMouseScroll(int wheel, int direction, int x, int y);
 void IdleFunction(void);
+glm::mat4 GetProjection();
+glm::mat4 GetView();
 
 /* Global variable declarations */
 GLuint
         WindowWidth = 800,
         WindowHeight = 600,
-        ProgramId, // shader program
-VAO,
+        VAO,
         VBO,
         modKey,
         texture;
 
 GLfloat
-        cameraSpeed = 0.0505f, // camera movement speed per frame
-zoomSpeed = 0.5f, // camera zoom speed per frame
+        zoomSpeed = 0.1f, // camera zoom speed per frame
 lastMouseX = 400,
         lastMouseY = 300,
         mouseOffsetX,
         mouseOffsetY,
-        yaw = 0.0f,
+        yaw = -90.0f,
         pitch = 0.0f,
         sensitivity = 0.5f,
-        scaleX = 6.0f,
-        scaleY = 6.0f,
-        scaleZ = 6.0f;
+        scaleX = 0.5f,
+        scaleY = 0.5f,
+        scaleZ = 0.5f;
 
+// Camera variable
 glm::vec3
         front,
         cameraForwardZ,
-        cameraPos = glm::vec3(0.5f,0.0f,0.0f),
+        cameraPos = glm::vec3(0.0f,0.0f,0.0f),
         cameraUpY = glm::vec3(0.0f,1.0f,0.0f);
 
 
 // key and fill light colors
 glm::vec3 keyLightColor(1.0f, 1.0f, 1.0f); // green light
-glm::vec3 fillLightColor(0.999, 0.999, 0.999); // white light
+glm::vec3 fillLightColor(1.0, 1.0, 1.0); // white light
 
 // Light position
-glm::vec3 keyLightPos(-5.0f, 15.0f, -10.0f);
-glm::vec3 fillLightPos(5.0f, 0.0f, 10.0f);
+glm::vec3 keyLightPos(0.0f, -8.0f, -15.0f);
+glm::vec3 fillLightPos(5.0f, -8.0f, 15.0f);
 
-
+// default perspective
 glm::mat4 projection = glm::perspective(45.0f, (GLfloat)WindowWidth / (GLfloat)WindowHeight, 0.1f, 100.0f);
+glm::mat4 view;
 
 GLchar
         currKey; // store current key pressed
 
 bool
-        mouseDetected = true, // flag for determinig when the mouse is detected in the window
-zoom, // flag to tell the program to zoom
-orbit; // flag to tell the program to orbit
-
+        mouseDetected = true, // flag for determining when the mouse is detected in the window
+rotate; // flag to tell the program to rotate the object and not the camera
 
 
 /*
@@ -151,9 +151,10 @@ private:
                                                       void main() {
 
                                                           /* Calculate Ambient Lighting */
-                                                          float ambientStrength = 0.1f;
-                                                          vec3 keyAmbient = ambientStrength * keyLightColor; //Generate ambient light color
-                                                          vec3 fillAmbient = ambientStrength * fillLightColor;//Generate second ambient light color
+                                                          float keyAmbientStrength = 0.3f;
+                                                          float fillAmbientStrength = 0.1f;
+                                                          vec3 keyAmbient = keyAmbientStrength * keyLightColor; //Generate ambient light color
+                                                          vec3 fillAmbient = fillAmbientStrength * fillLightColor;//Generate second ambient light color
 
                                                           /* Calculate Diffuse Lighting */
                                                           vec3 norm = normalize(Normal); //Normalize vectors to 1 unit
@@ -165,16 +166,17 @@ private:
                                                           vec3 fillDiffuse = fillImpact * fillLightColor; //Generate diffuse light color
 
                                                           /* Calculate Specular Lighting */
-                                                          float highlighSize = 0.5f;
-                                                          float keySpecularIntensity = 0.5f;
-                                                          float fillSpecularIntensity = 1.0f;
+                                                          float keyHighlighSize = 0.8f;
+                                                          float fillHighlighSize = 0.5f;
+                                                          float keySpecularIntensity = 1.0f;
+                                                          float fillSpecularIntensity = 0.33f;
 
                                                           vec3 viewDir = normalize(viewPosition - FragmentPos); //Calculate view direction
                                                           vec3 keyReflectDir = reflect(-keyLightDirection, norm); //Calculate reflection vector
                                                           vec3 fillReflectDir = reflect(-fillLightDirection, norm); //Calculate reflection vector
                                                           // Calculate specular component
-                                                          float keySpecularComponent = pow(max(dot(viewDir, keyReflectDir), 0.0), highlighSize);
-                                                          float fillSpecularComponent = pow(max(dot(viewDir, fillReflectDir), 0.0), highlighSize);
+                                                          float keySpecularComponent = pow(max(dot(viewDir, keyReflectDir), 0.0), keyHighlighSize);
+                                                          float fillSpecularComponent = pow(max(dot(viewDir, fillReflectDir), 0.0), fillHighlighSize);
                                                           vec3 keySpecular = keySpecularIntensity * keySpecularComponent * keyLightColor;
                                                           vec3 fillSpecular = fillSpecularIntensity * keySpecularComponent * keyLightColor;
 
@@ -345,8 +347,8 @@ void UInitialize(int argc, char* argv[]){
     shader.Compile();
     shader.Use();
 
-    // Sets the background color of the window to black, Optional
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    // Sets the background color of the window to to gray
+    glClearColor(0.439, 0.502, 0.565, 1.0f );
 }
 
 // Implements the UInitWindow function
@@ -407,9 +409,9 @@ void URenderGraphics(void){
     model = glm::scale(model, glm::vec3(scaleX, scaleY, scaleZ));
 
     // Transforms the camera
-    glm::mat4 view;
-    view = glm::lookAt(cameraForwardZ, cameraPos, cameraUpY);
-    view = glm::rotate(view, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    view = GetView();
+
+    projection = GetProjection();
 
     // Retrieves and passes transform matrices to the shader program
     GLint modelLoc = glGetUniformLocation(shader.Program, "model");
@@ -987,6 +989,21 @@ void UGenerateTexture() {
     glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
 }
 
+glm::mat4 GetProjection(){
+
+    if (currKey == '2') {
+        projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
+    }
+
+    if (currKey == '3') {
+        projection = glm::perspective(45.0f, (GLfloat)WindowWidth / (GLfloat)WindowHeight, 0.1f, 100.0f);
+    }
+    return projection;
+}
+
+glm::mat4 GetView(){
+    return glm::lookAt(cameraPos - cameraForwardZ, cameraPos, cameraUpY);
+}
 
 /*
  * When a key is pressed in the window then process this keystroke
@@ -994,17 +1011,7 @@ void UGenerateTexture() {
  */
 void KeyboardFunction(unsigned char key, int X, int Y)
 {
-    // 2D orthographic display
-    if (key == '2'){
-        // Creates an Orthographic projection (3D objects represented in 2D)
-        projection =  glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.0f);
-    }
-    // 3D perspective
-    if (key == '3'){
-        // Creates a 3D projection
-        projection = glm::perspective(45.0f, (GLfloat)WindowWidth / (GLfloat)WindowHeight, 0.1f, 100.0f);
-    }
-
+    currKey = key;
 }
 
 void UKeyRelease(unsigned char key, int x, int y){
@@ -1020,14 +1027,14 @@ bool IsAltKeyPressed(){
 
 // track mouse button clicks
 void MouseClick(int btn, int state, int x, int y){
-    // Alt+Left Mouse is an orbital command
+    // Alt+Left Mouse is an rotate command
     if ((btn == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN) && IsAltKeyPressed()){
-        orbit = true;
+        rotate = true;
     }
 
     // reset orbit/zoom variables when mouse press is released
     if (state == GLUT_UP) {
-        orbit = false;
+        rotate = false;
     }
 }
 
@@ -1038,15 +1045,15 @@ void SetView(){
         pitch = 89.0f;
     if (pitch < -89.0f)
         pitch = -89.0f;
-    if (yaw > 180)
-        yaw -= 360;
-    if (yaw < -180)
-        yaw += 180;
 
     // Sets the front variable that controls CameraForwardZ
-    front.x = 10.0f * cos(glm::radians(yaw));
-    front.y = 10.0f * sin(glm::radians(pitch));
-    front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw)) * 10.0f;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front = glm::normalize(front);
+
+    glm::vec3 right = glm::normalize(glm::cross(front, cameraUpY));
+    cameraUpY = glm::normalize(glm::cross(right, front));
 }
 
 // tracks the mouse movement withing the window
@@ -1062,7 +1069,7 @@ void MouseMove(int x, int y){
 
 // tracks when mouse button is pressed and moved
 void MousePressMove(int x, int y){
-    if (orbit){
+    if (rotate){
         // Gets the direction the mouse was move in x and y
         mouseOffsetX = x - lastMouseX;
         mouseOffsetY = y - lastMouseY;
@@ -1075,12 +1082,9 @@ void MousePressMove(int x, int y){
         mouseOffsetX *= sensitivity;
         mouseOffsetY *= sensitivity;
 
-        // Accumulates the yaw and pith variables
+        // Accumulates the yaw and pitch variables
         yaw += mouseOffsetX;
         pitch += mouseOffsetY;
-
-        cout<<"yaw:"<<yaw<<", pitch:"<<pitch<<endl;
-
     }
 
     SetView();
@@ -1107,6 +1111,8 @@ void UMouseScroll(int wheel, int direction, int x, int y){
         scaleZ += zoomSpeed;
     }
 
+    std::cout << "scale (X, Y, Z)" << scaleX << " " << scaleY << " " << scaleZ << std::endl;
+
     // Updates with the new mouse coordinates
     lastMouseX = x;
     lastMouseY = y;
@@ -1119,8 +1125,6 @@ void UMouseScroll(int wheel, int direction, int x, int y){
  * The next iteration through glutMainLoop, the window's display callback will be called to
  * redisplay the window's normal plane
  */
-void IdleFunction(void)
-
-{
+void IdleFunction(void) {
     glutPostRedisplay();
 }
